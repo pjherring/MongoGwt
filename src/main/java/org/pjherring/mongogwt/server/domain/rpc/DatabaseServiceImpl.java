@@ -12,7 +12,7 @@ import java.util.List;
 import org.pjherring.mongogwt.client.rpc.DatabaseService;
 import org.pjherring.mongogwt.shared.IsDomainObject;
 import org.pjherring.mongogwt.shared.domain.operation.Database;
-import org.pjherring.mongogwt.shared.exceptions.NotFoundException;
+import org.pjherring.mongogwt.shared.exception.NotFoundException;
 import org.pjherring.mongogwt.shared.query.Query;
 
 /**
@@ -30,7 +30,7 @@ public class DatabaseServiceImpl extends RemoteServiceServlet implements Databas
     }
 
     public IsDomainObject create(IsDomainObject domainObject) {
-        database.doCreate(domainObject);
+        database.create(domainObject);
         return domainObject;
     }
 
@@ -47,12 +47,16 @@ public class DatabaseServiceImpl extends RemoteServiceServlet implements Databas
     }
 
     public IsDomainObject update(IsDomainObject domainObject) {
-        database.doUpdate(domainObject);
+        database.update(domainObject);
         return domainObject;
     }
 
     public void delete(Query query, String type) {
-        database.doDelete(query, getClassFromString(type));
+        database.delete(query, getClassFromString(type));
+    }
+
+    public void delete(IsDomainObject domainObject) {
+        database.delete(domainObject);
     }
 
     public IsDomainObject refresh(IsDomainObject domainObject, String type) throws NotFoundException {

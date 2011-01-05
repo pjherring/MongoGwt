@@ -21,6 +21,7 @@ public interface DatabaseServiceAsync {
     public void findOne(Query query, String type, boolean doFanOut, AsyncCallback<IsDomainObject> asyncCallback);
     public void update(IsDomainObject domainObject, AsyncCallback<IsDomainObject> asyncCallback);
     public void delete(Query query, String type, AsyncCallback<Void> asyncCallback);
+    public void delete(IsDomainObject domainObject, AsyncCallback<Void> asyncCallback);
     public void refresh(IsDomainObject domainObject, String type, AsyncCallback<IsDomainObject> asyncCallback);
     public void count(Query query, String type, AsyncCallback<Long> asyncCallback);
 }

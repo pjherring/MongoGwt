@@ -31,10 +31,10 @@ import org.pjherring.mongogwt.shared.annotations.Enumerated;
 import org.pjherring.mongogwt.shared.annotations.Reference;
 import org.pjherring.mongogwt.shared.annotations.enums.EnumeratedType;
 import org.pjherring.mongogwt.shared.annotations.enums.ReferenceType;
-import org.pjherring.mongogwt.shared.exceptions.InvalidCollectionException;
-import org.pjherring.mongogwt.shared.exceptions.InvalidReference;
-import org.pjherring.mongogwt.shared.exceptions.NotFoundException;
-import org.pjherring.mongogwt.shared.exceptions.QueryException;
+import org.pjherring.mongogwt.shared.exception.InvalidCollectionException;
+import org.pjherring.mongogwt.shared.exception.InvalidReference;
+import org.pjherring.mongogwt.shared.exception.NotFoundException;
+import org.pjherring.mongogwt.shared.exception.QueryException;
 import org.pjherring.mongogwt.shared.query.Query;
 
 /**

@@ -9,7 +9,7 @@ package org.pjherring.mongogwt.testing.guice;
 import com.google.inject.AbstractModule;
 import com.google.inject.Singleton;
 import org.pjherring.mongogwt.client.rpc.RpcDatabase;
-import org.pjherring.mongogwt.client.rpc.TestingRpcDatabase;
+import org.pjherring.mongogwt.server.rpc.TestingRpcDatabase;
 
 /**
  *

@@ -20,6 +20,7 @@ import org.pjherring.mongogwt.shared.domain.operation.DoesRead;
 import org.pjherring.mongogwt.shared.domain.operation.DoesUpdate;
 import org.pjherring.mongogwt.shared.domain.operation.DoesValidate;
 import org.pjherring.mongogwt.shared.domain.operation.Database;
+import org.pjherring.mongogwt.shared.exception.NotPersistedException;
 import org.pjherring.mongogwt.shared.query.Query;
 
 /**
@@ -56,18 +57,33 @@ public class DatabaseImpl implements Database {
 
     }
 
-    public  void doCreate(IsDomainObject domainObject) {
+    /*
+     * Creates the @param domainObject
+     */
+    public  void create(IsDomainObject domainObject) {
         doAccess(domainObject.getClass(), domainObject, null, DataAccessType.CREATE, WhenDataAccess.BEFORE);
         creator.doCreate(domainObject);
         doAccess(domainObject.getClass(), domainObject, null, DataAccessType.CREATE, WhenDataAccess.AFTER);
     }
 
-    public void doUpdate(IsDomainObject domainObject) {
+    /*
+     * Updates the @param domainObject
+     */
+    public void update(IsDomainObject domainObject) {
+        checkPersisted(domainObject);
+
         doAccess(domainObject.getClass(), domainObject, null, DataAccessType.UPDATE, WhenDataAccess.BEFORE);
         updater.doUpdate(domainObject);
         doAccess(domainObject.getClass(), domainObject, null, DataAccessType.UPDATE, WhenDataAccess.AFTER);
     }
 
+    /*
+     * Finds domain objects according to @param query. @param doFanOut indicates
+     * whether or not we should include references in the result objects. I.e.
+     * if a person has multiple email address and there are two entity's "Person"
+     * and "Email", doFanOut = true will grab all the related "Email" entities. If false,
+     * the opposite.
+     */
     public <T extends IsDomainObject> List<T> find(Query query, Class<T> type, boolean doFanOut) {
         doAccess(type, null, query, DataAccessType.READ, WhenDataAccess.BEFORE);
         List<T> toReturn = reader.find(query, type, doFanOut);
@@ -79,6 +95,11 @@ public class DatabaseImpl implements Database {
         return toReturn;
     }
 
+    /*
+     * @param query how to query the db
+     * @param type the Class of the domain object on which to query
+     * @param doFanOut should references be included in result
+     */
     public <T extends IsDomainObject> T findOne(Query query, Class<T> type, boolean doFanOut) {
         T toReturn;
         doAccess(type, null, query, DataAccessType.READ, WhenDataAccess.BEFORE);
@@ -98,19 +119,47 @@ public class DatabaseImpl implements Database {
         return toReturn;
     }
 
-    public void doDelete(Query query, Class<? extends IsDomainObject> type) {
+    /*
+     * @param query queries the database to find objects to delete
+     * @param type Class of the domain object to delete.
+     */
+    public void delete(Query query, Class<? extends IsDomainObject> type) {
         doAccess(type, null, query, DataAccessType.DELETE, WhenDataAccess.BEFORE);
         deleter.doDelete(query, type);
         doAccess(type, null, query, DataAccessType.DELETE, WhenDataAccess.AFTER);
     }
 
+    /*
+     * domainObject The object to delete.
+     */
+    public <T extends IsDomainObject> void delete(T domainObject) {
+        checkPersisted(domainObject);
+
+        delete(
+            new Query().start("_id").is(domainObject.getId()),
+            domainObject.getClass()
+        );
+    }
+
+    /*
+     * @param domainObject The object to refresh.
+     * @param type The class of @param domainObject
+     */
     public <T extends IsDomainObject> T refresh(
         IsDomainObject domainObject,
         Class<T> type) {
+        checkPersisted(domainObject);
 
         return reader.findById(domainObject.getId(), type, true);
     }
 
+    /*
+     * Searches for any hooks to perform. (nullable)
+     * @param clazz Class of domain object.
+     * @param query Query that might be used by hook (nullable)
+     * @param type Type of data access (Create, Read, Update, Delete)
+     * @param when Before or After operation has been done
+     */
     private void doAccess(
         Class clazz,
         IsDomainObject domainObject,
@@ -140,7 +189,20 @@ public class DatabaseImpl implements Database {
         }
     }
 
+    /*
+     * Finds count of a query.
+     */
     public <T extends IsDomainObject> Long count(Query query, Class<T> type) {
         return reader.count(query, type);
+    }
+
+    /*
+     * Checks to see if an object is persited. If not this will
+     * throw @exception org.pjherring.mongogwt.shared.exception.NotPersistedException .
+     */
+    private void checkPersisted(IsDomainObject domainObject) {
+        if (domainObject.getId() == null) {
+            throw new NotPersistedException();
+        }
     }
 }

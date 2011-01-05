@@ -28,8 +28,8 @@ import org.pjherring.mongogwt.shared.annotations.Entity;
 import org.pjherring.mongogwt.shared.annotations.Enumerated;
 import org.pjherring.mongogwt.shared.annotations.Reference;
 import org.pjherring.mongogwt.shared.annotations.enums.ReferenceType;
-import org.pjherring.mongogwt.shared.exceptions.InvalidCollectionException;
-import org.pjherring.mongogwt.shared.exceptions.ValidationException;
+import org.pjherring.mongogwt.shared.exception.InvalidCollectionException;
+import org.pjherring.mongogwt.shared.exception.ValidationException;
 
 /**
  *

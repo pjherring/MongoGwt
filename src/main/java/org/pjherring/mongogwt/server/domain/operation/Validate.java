@@ -19,11 +19,11 @@ import org.pjherring.mongogwt.shared.annotations.Reference;
 import org.pjherring.mongogwt.shared.annotations.enums.ReferenceType;
 import org.pjherring.mongogwt.shared.BaseDomainObject;
 import org.pjherring.mongogwt.shared.IsDomainObject;
-import org.pjherring.mongogwt.shared.exceptions.InvalidCollectionException;
-import org.pjherring.mongogwt.shared.exceptions.LengthException;
-import org.pjherring.mongogwt.shared.exceptions.NullableException;
-import org.pjherring.mongogwt.shared.exceptions.RegexpException;
-import org.pjherring.mongogwt.shared.exceptions.UniqueException;
+import org.pjherring.mongogwt.shared.exception.InvalidCollectionException;
+import org.pjherring.mongogwt.shared.exception.LengthException;
+import org.pjherring.mongogwt.shared.exception.NullableException;
+import org.pjherring.mongogwt.shared.exception.RegexpException;
+import org.pjherring.mongogwt.shared.exception.UniqueException;
 import org.pjherring.mongogwt.shared.query.Query;
 import org.pjherring.mongogwt.server.guice.DatabaseModule.CollectionNames;
 

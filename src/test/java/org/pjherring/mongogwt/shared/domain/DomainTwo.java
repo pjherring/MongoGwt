@@ -38,7 +38,7 @@ public class DomainTwo extends BaseDomainObject {
         this.stringData = stringData;
     }
 
-    @Column(name="long")
+    @Column(name="longData")
     public Long getLongData() {
         return longData;
     }

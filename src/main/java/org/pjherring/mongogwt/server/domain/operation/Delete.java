@@ -12,7 +12,7 @@ import org.pjherring.mongogwt.shared.IsDomainObject;
 import org.pjherring.mongogwt.shared.domain.operation.DoesDelete;
 import org.pjherring.mongogwt.shared.query.Query;
 import org.pjherring.mongogwt.shared.annotations.Entity;
-import org.pjherring.mongogwt.shared.exceptions.NotFoundException;
+import org.pjherring.mongogwt.shared.exception.NotFoundException;
 
 /**
  *
