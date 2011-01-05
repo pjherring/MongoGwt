@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>org.pjherring</groupId>
+	<artifactId>mongo-gwt</artifactId>
+	<packaging>jar</packaging>
+	<version>1.0</version>
+	<name>Mongo-Gwt</name>
+
+	<repositories>
+        <repository>
+            <id>gwt-maven-snapshot-repo</id>
+            <name>GWT Maven Snapshot Repo</name>
+            <url>https://oss.sonatype.org/content/repositories/google-snapshots/</url>
+        </repository>
+        <repository>
+            <id>maven-central-repo</id>
+            <name>Maven Centrol Repo</name>
+            <url>http://repo1.maven.org/maven2</url>
+        </repository>
+        <repository>
+            <url>http://download.java.net/maven/2/</url>
+            <id>hibernate-support</id>
+            <layout>default</layout>
+            <name>Repository for library Library[hibernate-support]</name>
+        </repository>
+        <repository>
+          <id>maven2-repository.dev.java.net</id>
+          <name>Java.net Repository for Maven</name>
+          <url>http://download.java.net/maven/2/</url>
+          <layout>default</layout>
+        </repository>
+        <repository>
+            <id>Gwt-Repo</id>
+            <name>GWT's Maven Place Repo</name>
+            <url>http://google-web-toolkit.googlecode.com/svn/2.1.0/gwt/maven</url>
+        </repository>
+	</repositories>
+
+    <pluginRepositories>
+    </pluginRepositories>
+
+	<dependencies>
+        <dependency>
+            <groupId>com.google.gwt</groupId>
+            <artifactId>gwt-servlet</artifactId>
+            <version>2.1.0</version>
+        </dependency>
+        <dependency>
+            <groupId>com.google.gwt</groupId>
+            <artifactId>gwt-user</artifactId>
+            <version>2.1.0</version>
+        </dependency>
+        <dependency>
+            <groupId>com.google.gwt.inject</groupId>
+            <artifactId>gin</artifactId>
+            <version>1.0</version>
+        </dependency>
+        <dependency>
+            <groupId>com.google.inject</groupId>
+            <artifactId>guice</artifactId>
+            <version>2.0</version>
+        </dependency>
+        <dependency>
+            <groupId>com.google.inject.extensions</groupId>
+            <artifactId>guice-servlet</artifactId>
+            <version>2.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-simple</artifactId>
+            <version>1.5.8</version>
+        </dependency>
+        <dependency>
+            <groupId>javassist</groupId>
+            <artifactId>javassist</artifactId>
+            <version>3.9.0.GA</version>
+        </dependency>
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>4.8.1</version>
+			<scope>test</scope>
+		</dependency>
+        <dependency>
+            <groupId>org.json</groupId>
+            <artifactId>json</artifactId>
+            <version>20090211</version>
+        </dependency>
+        <dependency>
+            <groupId>org.mongodb</groupId>
+            <artifactId>mongo-java-driver</artifactId>
+            <version>2.3</version>
+        </dependency>
+	</dependencies>
+
+	<build>
+		<plugins>
+            <plugin>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <source>1.5</source>
+                    <target>1.5</target>
+                </configuration>
+            </plugin>
+		</plugins>
+
+        <resources>
+            <resource>
+                <directory>src/main/java</directory>
+                <includes>
+                    <include>org/pjherring/mongogwt/client/**</include>
+                    <include>org/pjherring/mongogwt/shared/**</include>
+                    <include>org/pjherring/mongogwt/Main.gwt.xml</include>
+                </includes>
+            </resource>
+        </resources>
+
+        <outputDirectory>${project.build.directory}/${project.build.finalName}/WEB-INF/classes</outputDirectory>
+	</build>
+
+    <properties>
+        <project.build.directory>/Users/pjherring/NetBeansProjects</project.build.directory>
+        <project.build.finalName>war</project.build.finalName>
+    </properties>
+</project>
