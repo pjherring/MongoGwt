@@ -6,17 +6,9 @@
 package org.pjherring.mongogwt.shared;
 
 import com.google.gwt.user.client.rpc.IsSerializable;
-import java.util.Date;
 
 /**
  *
  * @author pjherring
  */
-public interface IsDomainObject extends IsSerializable {
-
-    String getId();
-    void setId(String id);
-
-    Date getCreatedDatetime();
-    void setCreatedDatetime(Date createdDatetime);
-}
+public interface IsStorable extends IsSerializable {}

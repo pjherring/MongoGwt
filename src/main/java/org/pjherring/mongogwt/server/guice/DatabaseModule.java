@@ -25,6 +25,7 @@ import org.pjherring.mongogwt.server.domain.DatabaseImpl;
 import org.pjherring.mongogwt.server.domain.operation.Read;
 import org.pjherring.mongogwt.server.domain.operation.Save;
 import org.pjherring.mongogwt.server.domain.operation.Validate;
+import org.pjherring.mongogwt.shared.IsEntity;
 import org.pjherring.mongogwt.shared.domain.operation.DoesCreate;
 import org.pjherring.mongogwt.shared.domain.operation.DoesDelete;
 import org.pjherring.mongogwt.shared.domain.operation.DoesRead;
@@ -40,12 +41,12 @@ public abstract class DatabaseModule extends AbstractModule {
 
     private static final Logger LOG = Logger.getLogger("Guice DatabaseModule");
 
-    protected TypeLiteral stringList = new TypeLiteral<List<String>>(){;};
+    protected TypeLiteral entityList = new TypeLiteral<List<Class<? extends IsEntity>>>(){;};
 
     @Retention(RetentionPolicy.RUNTIME)
     @Target(ElementType.PARAMETER)
     @BindingAnnotation
-    public @interface CollectionNames {}
+    public @interface EntityList {}
 
     @Override
     protected void configure() {
@@ -56,13 +57,13 @@ public abstract class DatabaseModule extends AbstractModule {
         bind(DoesValidate.class).to(Validate.class);
 
         bind(Database.class).to(DatabaseImpl.class).in(Singleton.class);
-
-        bindCollectionNames();
+        bind(entityList).annotatedWith(EntityList.class)
+            .toInstance(getEntityList());
     }
 
     @Provides
     @Singleton
-    public DB getDatabaseProvider() {
+    protected DB getDatabase() {
         try {
             return Mongo.connect(new DBAddress(getHostName(), getDatabaseName()));
         } catch (UnknownHostException e) {
@@ -70,8 +71,9 @@ public abstract class DatabaseModule extends AbstractModule {
         }
     }
 
+
     protected abstract String getHostName();
     protected abstract String getDatabaseName();
-    protected abstract void bindCollectionNames();
+    protected abstract List<Class<? extends IsEntity>> getEntityList();
 
 }

@@ -8,7 +8,7 @@ package org.pjherring.mongogwt.client.rpc;
 import com.google.gwt.user.client.rpc.RemoteService;
 import com.google.gwt.user.client.rpc.RemoteServiceRelativePath;
 import java.util.List;
-import org.pjherring.mongogwt.shared.IsDomainObject;
+import org.pjherring.mongogwt.shared.IsEntity;
 import org.pjherring.mongogwt.shared.exception.ConstraintException;
 import org.pjherring.mongogwt.shared.exception.InvalidCollectionException;
 import org.pjherring.mongogwt.shared.exception.InvalidColumnException;
@@ -29,15 +29,15 @@ import org.pjherring.mongogwt.shared.query.Query;
  */
 @RemoteServiceRelativePath("data")
 public interface DatabaseService extends RemoteService {
-    IsDomainObject create(IsDomainObject domainObject)
+    IsEntity create(IsEntity domainObject)
         throws NullableException, ConstraintException, InvalidCollectionException,
         InvalidColumnException, ValidationException, InvalidReference,
         LengthException, RegexpException, UniqueException;
-    List<IsDomainObject> find(Query query, String type, boolean doFanOut) throws NotFoundException, QueryException;
-    IsDomainObject findOne(Query query, String type, boolean doFanOut) throws NotFoundException, QueryException;
-    IsDomainObject update(IsDomainObject domainObject) throws ValidationException, QueryException, NotPersistedException;
+    List<IsEntity> find(Query query, String type, boolean doFanOut) throws NotFoundException, QueryException;
+    IsEntity findOne(Query query, String type, boolean doFanOut) throws NotFoundException, QueryException;
+    IsEntity update(IsEntity domainObject) throws ValidationException, QueryException, NotPersistedException;
     void delete(Query query, String type) throws NotFoundException, NotPersistedException;
-    void delete(IsDomainObject domainObject) throws NotPersistedException;
-    IsDomainObject refresh(IsDomainObject domainObject, String type) throws NotFoundException, QueryException, NotPersistedException;
+    void delete(IsEntity domainObject) throws NotPersistedException;
+    IsEntity refresh(IsEntity domainObject, String type) throws NotFoundException, QueryException, NotPersistedException;
     Long count(Query query, String type);
 }

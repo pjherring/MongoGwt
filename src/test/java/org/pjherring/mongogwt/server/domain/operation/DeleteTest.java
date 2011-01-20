@@ -5,6 +5,7 @@
 
 package org.pjherring.mongogwt.server.domain.operation;
 
+import org.pjherring.mongogwt.shared.annotations.Entity;
 import org.pjherring.mongogwt.shared.query.Query;
 import org.pjherring.mongogwt.shared.domain.DomainOne;
 import org.pjherring.mongogwt.shared.domain.DomainTwo;
@@ -13,14 +14,12 @@ import com.google.inject.Injector;
 import com.mongodb.DB;
 import org.pjherring.mongogwt.server.guice.DataAccessTestModule;
 import org.pjherring.mongogwt.server.guice.DatabaseTestModule;
-import org.pjherring.mongogwt.shared.domain.operation.Database;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.pjherring.mongogwt.shared.domain.operation.Database;
-import org.pjherring.mongogwt.server.domain.operation.SaveTest;
 import org.pjherring.mongogwt.shared.exception.NotFoundException;
 import org.pjherring.mongogwt.shared.exception.NotPersistedException;
 import static org.junit.Assert.*;
@@ -55,8 +54,8 @@ public class DeleteTest {
 
     @After
     public void tearDown() {
-        mongoDb.getCollection("domainOne").drop();
-        mongoDb.getCollection("domainTwo").drop();
+        mongoDb.getCollection(DomainTwo.class.getAnnotation(Entity.class).name()).drop();
+        mongoDb.getCollection(DomainOne.class.getAnnotation(Entity.class).name()).drop();
     }
 
     @Test(expected=NotFoundException.class)

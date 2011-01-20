@@ -13,7 +13,7 @@ import org.pjherring.mongogwt.server.domain.hook.DataAccessType;
 import org.pjherring.mongogwt.server.domain.hook.BaseDataAccessHook;
 import org.pjherring.mongogwt.server.domain.hook.WhenDataAccess;
 import org.pjherring.mongogwt.server.guice.provider.hook.EmptyAccessMapProvider;
-import org.pjherring.mongogwt.shared.IsDomainObject;
+import org.pjherring.mongogwt.shared.IsEntity;
 
 /**
  *
@@ -29,14 +29,14 @@ public class DataAccessModule extends AbstractModule {
      */
     protected TypeLiteral<
         Map<
-            Class<? extends IsDomainObject>,
+            Class<? extends IsEntity>,
             Map<DataAccessType,
                 Map<WhenDataAccess, 
                     List<BaseDataAccessHook>>
             >
         >
     > dataAccessMapLiteral = new TypeLiteral<
-        Map<Class<? extends IsDomainObject>, Map<
+        Map<Class<? extends IsEntity>, Map<
             DataAccessType, Map<
                 WhenDataAccess, 
                     List<BaseDataAccessHook>

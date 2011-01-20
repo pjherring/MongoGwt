@@ -5,14 +5,14 @@
 
 package org.pjherring.mongogwt.server.domain.hook;
 
-import org.pjherring.mongogwt.shared.IsDomainObject;
+import org.pjherring.mongogwt.shared.IsEntity;
 import org.pjherring.mongogwt.shared.query.Query;
 
 /**
  *
  * @author pjherring
  */
-public abstract class IsDataAccess<T extends IsDomainObject> {
+public abstract class IsDataAccess<T extends IsEntity> {
 
     protected T domainObject;
     protected Query query;

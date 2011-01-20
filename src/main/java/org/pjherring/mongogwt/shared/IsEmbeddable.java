@@ -5,12 +5,8 @@
 
 package org.pjherring.mongogwt.shared;
 
-import com.google.gwt.user.client.rpc.IsSerializable;
-
 /**
  *
  * @author pjherring
  */
-public interface IsEmbeddable extends IsSerializable {
-
-}
+public interface IsEmbeddable extends IsStorable {}

@@ -1,0 +1,46 @@
+The following are the requirements for the PojoToDBObjectTranslator
+
+When an Entity pojo is passed into the function translate it should return a
+DBObject that can be stored in MongoDB. For instance if there was an Entity
+called SimpleEntity with an attribute data, which specified using annotations
+(Entity, Column) that the Entity's name was "simple" and the column's name was
+"data", we should expect a DBObject to be returned containing a key value pair
+("data" : [someValue]).
+
+If the Entity has an Embedded Object then the key value pair should have the
+key designated in the Entity's column name and the value should be a DBObject
+holding the key value pairs for the embedded object.
+
+I.e. Entity is TopLineEntity with an attribute of type EmbeddedEntity.
+TopLineEntity's entity name is "top" and its column name for EmbeddedEntity is
+"embedded". EmbeddedEntity has an attribute data with a column name "data". The
+DBObject representing TopLineEntity should have a key value pair.  The key
+should be "embedded" and the value should be a DBObject. The DBObject
+referenced by "embedded" should be a DBObject with one key/value pair. The key
+being "data" and the value being whatever value was stored in data.
+
+It is important to note that all objects referenced in a translation must be
+already persisted.
+
+If the Entity has a One to One reference AND the Entity manages the reference
+then the key value pair should have a key that references the other Entity as a
+DBObject.  If this Entity is not stored an exception should be thrown.
+
+
+If the Entity has a One To Many reference AND the Entity manages the reference
+then the key value pair should have a key that references an array of DBRefs.
+This is an object that can be used to fetch the entity.
+
+If the Entity has a Reference but it is managed by the other end of the Entity
+we do not have to do anything.
+
+All pojo's passed into translate must be annotated with Entity. They also must
+be of the type IsEntitiy. All getters of attributes that will be persisted
+must be annotated with Column which has "name" as one of its attributes.
+
+Also, if an Entity has been translated before there should be a map containing
+the getters referenced by the column name. This prevents us from iterating
+through all of an Entity's methods and helps us make objects quicker.
+Therefore, there should be a cache hit when an Entity is mapped twice, and
+there should be a cache miss when an Entity has never been mapped.
+

@@ -6,13 +6,13 @@
 package org.pjherring.mongogwt.server.domain.hook;
 
 import org.pjherring.mongogwt.shared.query.Query;
-import org.pjherring.mongogwt.shared.IsDomainObject;
+import org.pjherring.mongogwt.shared.IsEntity;
 
 /**
  *
  * @author pjherring
  */
-public abstract class BaseDataAccessHook<T extends IsDomainObject> {
+public abstract class BaseDataAccessHook<T extends IsEntity> {
 
     protected T domainObject;
     protected Query query;

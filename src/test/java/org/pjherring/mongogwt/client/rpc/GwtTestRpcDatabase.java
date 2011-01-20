@@ -40,94 +40,117 @@ public class GwtTestRpcDatabase extends GWTTestCase {
     }
 
     public void testCreateSuccess() {
-        SimpleDomain simple = new SimpleDomain();
-        simple.setData("some data here");
-        rpcDatabase
-            .create(simple, SimpleDomain.class, new AsyncCallback<SimpleDomain>() {
+        helper.dumpDatabase(new AsyncCallback<Void>() {
 
-                public void onFailure(Throwable caught) {
-                    LOG.warning(caught.getClass().getName());
-                    LOG.warning(caught.getMessage());
-                    throw new AssertionError("Should not be in onFailure");
-                }
-
-                public void onSuccess(SimpleDomain result) {
-                    assertNotNull(result.getId());
-                    finishTest();
-                }
+            public void onFailure(Throwable caught) {
+                throw new UnsupportedOperationException("Not supported yet.");
             }
-        );
 
+            public void onSuccess(Void result) {
+                SimpleDomain simple = new SimpleDomain();
+                simple.setData("some data here");
+                rpcDatabase
+                    .create(simple, SimpleDomain.class, new AsyncCallback<SimpleDomain>() {
+
+                        public void onFailure(Throwable caught) {
+                            LOG.warning(caught.getClass().getName());
+                            LOG.warning(caught.getMessage());
+                            throw new AssertionError("Should not be in onFailure");
+                        }
+
+                        public void onSuccess(SimpleDomain result) {
+                            assertNotNull(result.getId());
+                            finishTest();
+                        }
+                    }
+                );
+
+            }
+        });
         delayTestFinish(5000);
     }
 
 
     public void testCreateFailureNullException() {
-        SimpleDomain simple = new SimpleDomain();
-        rpcDatabase
-            .create(simple, SimpleDomain.class, new AsyncCallback<SimpleDomain>() {
+        helper.dumpDatabase(new AsyncCallback<Void>() {
 
-                public void onFailure(Throwable caught) {
-                    assertEquals(caught.getClass(), NullableException.class);
-                    finishTest();
-                }
-
-                public void onSuccess(SimpleDomain result) {
-                    LOG.warning("SUCCEEDED WHEN IT SHOULD NOT HAVE");
-                    throw new AssertionError("SHOULD FAIL");
-                }
+            public void onFailure(Throwable caught) {
+                throw new UnsupportedOperationException("Not supported yet.");
             }
-        );
 
-        delayTestFinish(5000);
-    }
-
-    public void testCreateFailureUniqueException() {
-        SimpleDomain simple = new SimpleDomain();
-        simple.setData("unique");
-
-        rpcDatabase
-            .create(simple, SimpleDomain.class, new AsyncCallback<SimpleDomain>() {
-
-                public void onFailure(Throwable caught) {
-                    LOG.warning("FAILED WHEN IT SHOULD NOT HAVE: " + caught.getClass().getName());
-                    throw new AssertionError(caught.getClass().getName());
-                }
-
-                public void onSuccess(SimpleDomain result) {
-                    rpcDatabase.create(result, SimpleDomain.class, new AsyncCallback<SimpleDomain>() {
+            public void onSuccess(Void result) {
+                SimpleDomain simple = new SimpleDomain();
+                rpcDatabase
+                    .create(simple, SimpleDomain.class, new AsyncCallback<SimpleDomain>() {
 
                         public void onFailure(Throwable caught) {
-                            assertEquals(caught.getClass(), UniqueException.class);
+                            assertEquals(caught.getClass(), NullableException.class);
                             finishTest();
                         }
 
                         public void onSuccess(SimpleDomain result) {
-                            LOG.warning("SUCCEEDED WHEN IT SHOULD HAVE FAILED");
+                            LOG.warning("SUCCEEDED WHEN IT SHOULD NOT HAVE");
                             throw new AssertionError("SHOULD FAIL");
                         }
-                    });
-                }
-            }
-        );
+                    }
+                );
 
+            }
+        });
         delayTestFinish(5000);
     }
 
+    public void testCreateFailureUniqueException() {
+        helper.dumpDatabase(new AsyncCallback<Void>() {
+
+            public void onFailure(Throwable result) {}
+
+            public void onSuccess(Void result) {
+                SimpleDomain simple = new SimpleDomain();
+                simple.setData("unique");
+
+                rpcDatabase
+                    .create(simple, SimpleDomain.class, new AsyncCallback<SimpleDomain>() {
+
+                        public void onFailure(Throwable caught) {
+                            LOG.warning("FAILED WHEN IT SHOULD NOT HAVE: " + caught.getClass().getName());
+                            throw new AssertionError(caught.getClass().getName());
+                        }
+
+                        public void onSuccess(SimpleDomain result) {
+                            rpcDatabase.create(result, SimpleDomain.class, new AsyncCallback<SimpleDomain>() {
+
+                                public void onFailure(Throwable caught) {
+                                    assertEquals(caught.getClass(), UniqueException.class);
+                                    LOG.info("ABOU T TO FINISH TEST");
+                                    finishTest();
+                                }
+
+                                public void onSuccess(SimpleDomain result) {
+                                    LOG.warning("SUCCEEDED WHEN IT SHOULD HAVE FAILED");
+                                    throw new AssertionError("SHOULD FAIL");
+                                }
+                            });
+                        }
+                    }
+                );
+            }
+        });
+
+        delayTestFinish(100000);
+    }
+
     public void testReadSuccess() {
-        SimpleDomain simple = new SimpleDomain();
-        simple.setData("testReadSuccess");
-        rpcDatabase.create(simple, SimpleDomain.class, new AsyncCallback<SimpleDomain>() {
+        helper.dumpDatabase(new AsyncCallback<Void>() {
 
             public void onFailure(Throwable caught) {
-                LOG.warning(caught.getClass().getName());
-                throw new AssertionError(caught.getClass().getName());
+                throw new UnsupportedOperationException("Not supported yet.");
             }
 
-            public void onSuccess(SimpleDomain result) {
-                final SimpleDomain copy = result;
-                rpcDatabase.findOne(
-                    new Query().start("_id").is(result.getId()), SimpleDomain.class, true, new AsyncCallback<SimpleDomain>() {
+            public void onSuccess(Void result) {
+                SimpleDomain simple = new SimpleDomain();
+                simple.setData("testReadSuccess");
+                rpcDatabase.create(simple, SimpleDomain.class, new AsyncCallback<SimpleDomain>() {
 
                     public void onFailure(Throwable caught) {
                         LOG.warning(caught.getClass().getName());
@@ -135,33 +158,75 @@ public class GwtTestRpcDatabase extends GWTTestCase {
                     }
 
                     public void onSuccess(SimpleDomain result) {
-                        assertEquals(result.getId(), copy.getId());
-                        finishTest();
+                        final SimpleDomain copy = result;
+                        rpcDatabase.findOne(
+                            new Query().start("_id").is(result.getId()), SimpleDomain.class, true, new AsyncCallback<SimpleDomain>() {
+
+                            public void onFailure(Throwable caught) {
+                                LOG.warning(caught.getClass().getName());
+                                throw new AssertionError(caught.getClass().getName());
+                            }
+
+                            public void onSuccess(SimpleDomain result) {
+                                assertEquals(result.getId(), copy.getId());
+                                finishTest();
+                            }
+                        });
                     }
                 });
+
             }
         });
-
         delayTestFinish(5000);
     }
 
     public void testReadFailure() {
-        rpcDatabase.findOne(new Query().start("data").is("some bad value"), SimpleDomain.class, true, new AsyncCallback<SimpleDomain>() {
+        helper.dumpDatabase(new AsyncCallback<Void>() {
 
             public void onFailure(Throwable caught) {
-                assertEquals(caught.getClass(), NotFoundException.class);
-                finishTest();
+                throw new UnsupportedOperationException("Not supported yet.");
             }
 
-            public void onSuccess(SimpleDomain result) {
-                LOG.warning("SUCCEEDED WHEN SHOULD HAVE FAILED");
-                throw new AssertionError("SHOULD NOT BE HERE DID NOT STORE");
+            public void onSuccess(Void result) {
+                rpcDatabase.findOne(new Query().start("data").is("some bad value"), SimpleDomain.class, true, new AsyncCallback<SimpleDomain>() {
+
+                    public void onFailure(Throwable caught) {
+                        assertEquals(caught.getClass(), NotFoundException.class);
+                        finishTest();
+                    }
+
+                    public void onSuccess(SimpleDomain result) {
+                        LOG.warning("SUCCEEDED WHEN SHOULD HAVE FAILED");
+                        throw new AssertionError("SHOULD NOT BE HERE DID NOT STORE");
+                    }
+                });
             }
         });
         delayTestFinish(5000);
     }
 
     public void testUpdateSuccess() {
-        LOG.info("HERE");
+        helper.dumpDatabase(new AsyncCallback<Void>() {
+
+            public void onFailure(Throwable caught) {
+                throw new UnsupportedOperationException("Not supported yet.");
+            }
+
+            public void onSuccess(Void result) {
+                SimpleDomain simple = new SimpleDomain();
+                simple.setData("data");
+                rpcDatabase.create(simple, SimpleDomain.class, new AsyncCallback<SimpleDomain>() {
+
+                    public void onFailure(Throwable caught) {
+                        throw new AssertionError("Creation Failed");
+                    }
+
+                    public void onSuccess(SimpleDomain result) {
+                        finishTest();
+                    }
+                });
+            }
+        });
+        delayTestFinish(5000);
     }
 }

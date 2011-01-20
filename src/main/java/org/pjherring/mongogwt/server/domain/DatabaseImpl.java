@@ -13,7 +13,7 @@ import java.util.logging.Logger;
 import org.pjherring.mongogwt.server.domain.hook.DataAccessType;
 import org.pjherring.mongogwt.server.domain.hook.BaseDataAccessHook;
 import org.pjherring.mongogwt.server.domain.hook.WhenDataAccess;
-import org.pjherring.mongogwt.shared.IsDomainObject;
+import org.pjherring.mongogwt.shared.IsEntity;
 import org.pjherring.mongogwt.shared.domain.operation.DoesCreate;
 import org.pjherring.mongogwt.shared.domain.operation.DoesDelete;
 import org.pjherring.mongogwt.shared.domain.operation.DoesRead;
@@ -38,7 +38,7 @@ public class DatabaseImpl implements Database {
     protected DoesRead reader;
     protected DoesUpdate updater;
     protected DoesDelete deleter;
-    protected Map<Class<? extends IsDomainObject>, Map<DataAccessType, Map<WhenDataAccess, List<BaseDataAccessHook>>>> dataAccessMap;
+    protected Map<Class<? extends IsEntity>, Map<DataAccessType, Map<WhenDataAccess, List<BaseDataAccessHook>>>> dataAccessMap;
 
     @Inject
     public DatabaseImpl(
@@ -47,7 +47,7 @@ public class DatabaseImpl implements Database {
         DoesUpdate updater,
         DoesDelete deleter,
         DoesValidate validator,
-        Map<Class<? extends IsDomainObject>, Map<DataAccessType, Map<WhenDataAccess, List<BaseDataAccessHook>>>> dataAccessMap) {
+        Map<Class<? extends IsEntity>, Map<DataAccessType, Map<WhenDataAccess, List<BaseDataAccessHook>>>> dataAccessMap) {
 
         this.creator = creator;
         this.reader = reader;
@@ -60,7 +60,7 @@ public class DatabaseImpl implements Database {
     /*
      * Creates the @param domainObject
      */
-    public  void create(IsDomainObject domainObject) {
+    public  void create(IsEntity domainObject) {
         doAccess(domainObject.getClass(), domainObject, null, DataAccessType.CREATE, WhenDataAccess.BEFORE);
         creator.doCreate(domainObject);
         doAccess(domainObject.getClass(), domainObject, null, DataAccessType.CREATE, WhenDataAccess.AFTER);
@@ -69,7 +69,7 @@ public class DatabaseImpl implements Database {
     /*
      * Updates the @param domainObject
      */
-    public void update(IsDomainObject domainObject) {
+    public void update(IsEntity domainObject) {
         checkPersisted(domainObject);
 
         doAccess(domainObject.getClass(), domainObject, null, DataAccessType.UPDATE, WhenDataAccess.BEFORE);
@@ -84,7 +84,7 @@ public class DatabaseImpl implements Database {
      * and "Email", doFanOut = true will grab all the related "Email" entities. If false,
      * the opposite.
      */
-    public <T extends IsDomainObject> List<T> find(Query query, Class<T> type, boolean doFanOut) {
+    public <T extends IsEntity> List<T> find(Query query, Class<T> type, boolean doFanOut) {
         doAccess(type, null, query, DataAccessType.READ, WhenDataAccess.BEFORE);
         List<T> toReturn = reader.find(query, type, doFanOut);
 
@@ -100,7 +100,7 @@ public class DatabaseImpl implements Database {
      * @param type the Class of the domain object on which to query
      * @param doFanOut should references be included in result
      */
-    public <T extends IsDomainObject> T findOne(Query query, Class<T> type, boolean doFanOut) {
+    public <T extends IsEntity> T findOne(Query query, Class<T> type, boolean doFanOut) {
         T toReturn;
         doAccess(type, null, query, DataAccessType.READ, WhenDataAccess.BEFORE);
 
@@ -123,7 +123,7 @@ public class DatabaseImpl implements Database {
      * @param query queries the database to find objects to delete
      * @param type Class of the domain object to delete.
      */
-    public void delete(Query query, Class<? extends IsDomainObject> type) {
+    public void delete(Query query, Class<? extends IsEntity> type) {
         doAccess(type, null, query, DataAccessType.DELETE, WhenDataAccess.BEFORE);
         deleter.doDelete(query, type);
         doAccess(type, null, query, DataAccessType.DELETE, WhenDataAccess.AFTER);
@@ -132,7 +132,7 @@ public class DatabaseImpl implements Database {
     /*
      * domainObject The object to delete.
      */
-    public <T extends IsDomainObject> void delete(T domainObject) {
+    public <T extends IsEntity> void delete(T domainObject) {
         checkPersisted(domainObject);
 
         delete(
@@ -145,8 +145,8 @@ public class DatabaseImpl implements Database {
      * @param domainObject The object to refresh.
      * @param type The class of @param domainObject
      */
-    public <T extends IsDomainObject> T refresh(
-        IsDomainObject domainObject,
+    public <T extends IsEntity> T refresh(
+        IsEntity domainObject,
         Class<T> type) {
         checkPersisted(domainObject);
 
@@ -162,22 +162,22 @@ public class DatabaseImpl implements Database {
      */
     private void doAccess(
         Class clazz,
-        IsDomainObject domainObject,
+        IsEntity domainObject,
         Query query,
         DataAccessType type,
         WhenDataAccess when) {
 
         if (dataAccessMap.containsKey(clazz)) {
-            LOG.info("Looking for hooks for : " + clazz.getSimpleName());
+            LOG.fine("Looking for hooks for : " + clazz.getSimpleName());
             Map<DataAccessType, Map<WhenDataAccess, List<BaseDataAccessHook>>> accessTypeToWhenMap
                 = dataAccessMap.get(clazz);
             if (accessTypeToWhenMap.containsKey(type)) {
-                LOG.info("Looking for : " + type.name());
+                LOG.fine("Looking for : " + type.name());
                 Map<WhenDataAccess, List<BaseDataAccessHook>> whenToAccessMap
                     = accessTypeToWhenMap.get(type);
 
                 if (whenToAccessMap.containsKey(when)) {
-                    LOG.info("Looking for : " + when.name());
+                    LOG.fine("Looking for : " + when.name());
                         
                     for (BaseDataAccessHook hook : whenToAccessMap.get(when)) {
                             hook.setDomainObject(domainObject);
@@ -192,7 +192,7 @@ public class DatabaseImpl implements Database {
     /*
      * Finds count of a query.
      */
-    public <T extends IsDomainObject> Long count(Query query, Class<T> type) {
+    public <T extends IsEntity> Long count(Query query, Class<T> type) {
         return reader.count(query, type);
     }
 
@@ -200,7 +200,7 @@ public class DatabaseImpl implements Database {
      * Checks to see if an object is persited. If not this will
      * throw @exception org.pjherring.mongogwt.shared.exception.NotPersistedException .
      */
-    private void checkPersisted(IsDomainObject domainObject) {
+    private void checkPersisted(IsEntity domainObject) {
         if (domainObject.getId() == null) {
             throw new NotPersistedException();
         }

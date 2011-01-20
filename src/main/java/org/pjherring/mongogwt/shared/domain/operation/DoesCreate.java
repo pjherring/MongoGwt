@@ -5,12 +5,12 @@
 
 package org.pjherring.mongogwt.shared.domain.operation;
 
-import org.pjherring.mongogwt.shared.IsDomainObject;
+import org.pjherring.mongogwt.shared.IsEntity;
 
 /**
  *
  * @author pjherring
  */
 public interface DoesCreate {
-    void doCreate(IsDomainObject domainObject);
+    void doCreate(IsEntity domainObject);
 }

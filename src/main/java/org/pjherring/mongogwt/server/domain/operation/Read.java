@@ -22,7 +22,7 @@ import java.util.Map;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
 import org.bson.types.ObjectId;
-import org.pjherring.mongogwt.shared.IsDomainObject;
+import org.pjherring.mongogwt.shared.IsEntity;
 import org.pjherring.mongogwt.shared.domain.operation.DoesRead;
 import org.pjherring.mongogwt.shared.annotations.Column;
 import org.pjherring.mongogwt.shared.annotations.Entity;
@@ -45,10 +45,10 @@ public class Read extends BaseDatabaseOperation implements DoesRead {
 
     private final Logger LOG = Logger.getLogger("Read");
 
-    protected Map<ObjectId, IsDomainObject> queryCache
-        = new HashMap<ObjectId, IsDomainObject>();
+    protected Map<ObjectId, IsEntity> queryCache
+        = new HashMap<ObjectId, IsEntity>();
 
-    public <T extends IsDomainObject> List<T> find(
+    public <T extends IsEntity> List<T> find(
         Query query, Class<T> collectionClass, boolean doFanOut
     ) {
         if (query.getQueryMap().containsKey("_id")) {
@@ -64,7 +64,7 @@ public class Read extends BaseDatabaseOperation implements DoesRead {
         throw new NotFoundException();
     }
 
-    public <T extends IsDomainObject> T findById(
+    public <T extends IsEntity> T findById(
         String id, Class<T> collectionClass, boolean doFanOut) {
 
         doCollectionClassValidation(collectionClass);
@@ -76,7 +76,7 @@ public class Read extends BaseDatabaseOperation implements DoesRead {
         return buildDomainObject(fetched, collectionClass, doFanOut);
     }
 
-    public <T extends IsDomainObject> T findOne(
+    public <T extends IsEntity> T findOne(
         Query query, Class<T> collectionClass, boolean doFanOut) {
 
         if (query.getQueryMap().containsKey("_id")) {
@@ -91,7 +91,7 @@ public class Read extends BaseDatabaseOperation implements DoesRead {
         return doFindOne(query, collectionClass, doFanOut);
     }
 
-    public <T extends IsDomainObject> Long count(Query query, Class<T> type) {
+    public <T extends IsEntity> Long count(Query query, Class<T> type) {
         doCollectionClassValidation(type);
         Entity entity = type.getAnnotation(Entity.class);
         doQueryValidation(query, type);
@@ -105,7 +105,7 @@ public class Read extends BaseDatabaseOperation implements DoesRead {
             .getCollection(entityName).count(refObject));
     }
 
-    protected <T extends IsDomainObject> T doFindOne(
+    protected <T extends IsEntity> T doFindOne(
         Query query, Class<T> collectionClass, boolean doFanOut
     ) {
         List<T> results = doQuery(query, collectionClass, doFanOut);
@@ -116,7 +116,7 @@ public class Read extends BaseDatabaseOperation implements DoesRead {
         }
     }
 
-    protected <T extends IsDomainObject> List<T> doQuery(
+    protected <T extends IsEntity> List<T> doQuery(
         Query query, Class<T> collectionClass, boolean doFanOut
     ) {
 
@@ -191,7 +191,7 @@ public class Read extends BaseDatabaseOperation implements DoesRead {
 
     protected void doQueryValidation(
         Query query,
-        Class<? extends IsDomainObject> clazz) {
+        Class<? extends IsEntity> clazz) {
         List<String> columnNames = getColumnNames(clazz);
         columnNames.add("$or");
 
@@ -260,9 +260,9 @@ public class Read extends BaseDatabaseOperation implements DoesRead {
         //cache this object so if we have any references, pointing to this
         //object they will grab the object reference from cache rather
         //than causing an infinite loop of recursion
-        if (pojoToBuild instanceof IsDomainObject) {
-            IsDomainObject pojoToBuildAsDomainObject =
-                (IsDomainObject) pojoToBuild;
+        if (pojoToBuild instanceof IsEntity) {
+            IsEntity pojoToBuildAsDomainObject =
+                (IsEntity) pojoToBuild;
             queryCache.put(idOfPojo, pojoToBuildAsDomainObject);
             pojoToBuildAsDomainObject.setId(idOfPojo.toString());
             pojoToBuildAsDomainObject
@@ -347,13 +347,14 @@ public class Read extends BaseDatabaseOperation implements DoesRead {
         for (Object enumConstant: enumClass.getEnumConstants()) {
             Enum constantAsEnum = (Enum) enumConstant;
 
-                if (enumAnnotation.value().equals(EnumeratedType.NAME)
-                    && constantAsEnum.name().equals(value)) {
+                if (constantAsEnum.name().equals(value)) {
                     return constantAsEnum;
-                } else if (enumAnnotation.value().equals(EnumeratedType.ORDINAL)
+                } /*else if (enumAnnotation.value().equals(EnumeratedType.ORDINAL)
                     && constantAsEnum.ordinal() == ordinalCnt++) {
                     return constantAsEnum;
                 }
+                   *
+                   */
 
                 ordinalCnt++;
         }
@@ -399,8 +400,8 @@ public class Read extends BaseDatabaseOperation implements DoesRead {
                 return doFindOne(findQuery, referencedClass, doFanOut);
             } else {
                 //if not just return a IsDomainObject pojo with just the id set
-                IsDomainObject referencedDomainObject =
-                    (IsDomainObject) referencedClass.newInstance();
+                IsEntity referencedDomainObject =
+                    (IsEntity) referencedClass.newInstance();
                 referencedDomainObject.setId(referencedId.toString());
                 return referencedDomainObject;
             }

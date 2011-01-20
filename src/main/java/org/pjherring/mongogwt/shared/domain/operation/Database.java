@@ -5,9 +5,8 @@
 
 package org.pjherring.mongogwt.shared.domain.operation;
 
-import org.pjherring.mongogwt.shared.IsDomainObject;
+import org.pjherring.mongogwt.shared.IsEntity;
 import java.util.List;
-import org.pjherring.mongogwt.shared.exception.ValidationException;
 import org.pjherring.mongogwt.shared.query.Query;
 
 /**
@@ -15,21 +14,23 @@ import org.pjherring.mongogwt.shared.query.Query;
  * @author pjherring
  */
 public interface Database {
-    void create(IsDomainObject domainObject) throws ValidationException;
 
-    void update(IsDomainObject domainObject) throws ValidationException;
+    void create(IsEntity domainObject);
 
-    <T extends IsDomainObject> List<T>
+    void update(IsEntity domainObject);
+
+    <T extends IsEntity> List<T>
         find(Query query, Class<T> type, boolean doFanOut);
-    <T extends IsDomainObject> T
+
+    <T extends IsEntity> T
         findOne(Query query, Class<T> type, boolean doFanOut);
 
-    void delete(Query query, Class<? extends IsDomainObject> type);
+    void delete(Query query, Class<? extends IsEntity> type);
 
-    <T extends IsDomainObject> void delete(T domainObject);
+    <T extends IsEntity> void delete(T domainObject);
 
-    <T extends IsDomainObject> T refresh(IsDomainObject domainObject, Class<T> type);
+    <T extends IsEntity> T refresh(IsEntity domainObject, Class<T> type);
 
-    <T extends IsDomainObject> Long count(Query query, Class<T> type);
+    <T extends IsEntity> Long count(Query query, Class<T> type);
 
 }

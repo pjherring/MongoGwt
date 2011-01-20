@@ -5,6 +5,7 @@
 
 package org.pjherring.mongogwt.server.domain.operation;
 
+import org.pjherring.mongogwt.shared.annotations.Entity;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.mongodb.DB;
@@ -49,12 +50,12 @@ public class SaveTest {
 
     @Before
     public void setUp() {
+        mongoDb.getCollection(DomainTwo.class.getAnnotation(Entity.class).name()).drop();
+        mongoDb.getCollection(DomainOne.class.getAnnotation(Entity.class).name()).drop();
     }
 
     @After
     public void tearDown() {
-        mongoDb.getCollection("domainOne").drop();
-        mongoDb.getCollection("domainTwo").drop();
     }
 
     public static DomainOne createDomainOne() {

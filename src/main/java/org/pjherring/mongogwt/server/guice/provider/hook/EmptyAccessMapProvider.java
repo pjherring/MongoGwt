@@ -14,7 +14,7 @@ import java.util.logging.Logger;
 import org.pjherring.mongogwt.server.domain.hook.BaseDataAccessHook;
 import org.pjherring.mongogwt.server.domain.hook.DataAccessType;
 import org.pjherring.mongogwt.server.domain.hook.WhenDataAccess;
-import org.pjherring.mongogwt.shared.IsDomainObject;
+import org.pjherring.mongogwt.shared.IsEntity;
 
 /**
  *
@@ -23,7 +23,7 @@ import org.pjherring.mongogwt.shared.IsDomainObject;
 public class EmptyAccessMapProvider 
     implements Provider<
         Map<
-            Class<? extends IsDomainObject>,
+            Class<? extends IsEntity>,
             Map<
                 DataAccessType,
                 Map<
@@ -36,10 +36,10 @@ public class EmptyAccessMapProvider
 
     private final static Logger LOG = Logger.getLogger(EmptyAccessMapProvider.class.getName());
 
-    private Map<Class<? extends IsDomainObject>, Map<DataAccessType, Map<WhenDataAccess, List<BaseDataAccessHook>>>>
-        map = new HashMap<Class<? extends IsDomainObject>, Map<DataAccessType, Map<WhenDataAccess, List<BaseDataAccessHook>>>>();
+    private Map<Class<? extends IsEntity>, Map<DataAccessType, Map<WhenDataAccess, List<BaseDataAccessHook>>>>
+        map = new HashMap<Class<? extends IsEntity>, Map<DataAccessType, Map<WhenDataAccess, List<BaseDataAccessHook>>>>();
 
-    public Map<Class<? extends IsDomainObject>, Map<DataAccessType, Map<WhenDataAccess, List<BaseDataAccessHook>>>> get() {
+    public Map<Class<? extends IsEntity>, Map<DataAccessType, Map<WhenDataAccess, List<BaseDataAccessHook>>>> get() {
         return map;
     }
 

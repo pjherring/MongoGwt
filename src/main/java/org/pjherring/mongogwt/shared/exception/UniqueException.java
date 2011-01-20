@@ -13,7 +13,7 @@ public class UniqueException extends ConstraintException {
     public UniqueException() {}
 
     public UniqueException(String columnName) {
-        super("Unique column exception", columnName);
+        super("Unique column exception on: " + columnName, columnName);
     }
 
 }

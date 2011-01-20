@@ -10,13 +10,14 @@ import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import java.util.List;
 import org.pjherring.mongogwt.client.rpc.DatabaseService;
-import org.pjherring.mongogwt.shared.IsDomainObject;
+import org.pjherring.mongogwt.shared.IsEntity;
 import org.pjherring.mongogwt.shared.domain.operation.Database;
 import org.pjherring.mongogwt.shared.exception.NotFoundException;
 import org.pjherring.mongogwt.shared.query.Query;
 
 /**
- *
+ * This class handles the RPC calls. It then passes these calls along to to
+ * @see org.pjherring.mongogwt.shared.domain.operation.Database
  * @author pjherring
  */
 @Singleton
@@ -29,24 +30,24 @@ public class DatabaseServiceImpl extends RemoteServiceServlet implements Databas
         this.database = database;
     }
 
-    public IsDomainObject create(IsDomainObject domainObject) {
+    public IsEntity create(IsEntity domainObject) {
         database.create(domainObject);
         return domainObject;
     }
 
-    public List<IsDomainObject> find(Query query, String type, boolean doFanOut) {
+    public List<IsEntity> find(Query query, String type, boolean doFanOut) {
         Class typeAsClass = getClassFromString(type);
 
-        List<IsDomainObject> results = database.find(query, typeAsClass, doFanOut);
+        List<IsEntity> results = database.find(query, typeAsClass, doFanOut);
         return results;
     }
 
-    public IsDomainObject findOne(Query query, String type, boolean doFanOut) {
+    public IsEntity findOne(Query query, String type, boolean doFanOut) {
         Class typeAsClass = getClassFromString(type);
         return database.findOne(query, typeAsClass, doFanOut);
     }
 
-    public IsDomainObject update(IsDomainObject domainObject) {
+    public IsEntity update(IsEntity domainObject) {
         database.update(domainObject);
         return domainObject;
     }
@@ -55,11 +56,11 @@ public class DatabaseServiceImpl extends RemoteServiceServlet implements Databas
         database.delete(query, getClassFromString(type));
     }
 
-    public void delete(IsDomainObject domainObject) {
+    public void delete(IsEntity domainObject) {
         database.delete(domainObject);
     }
 
-    public IsDomainObject refresh(IsDomainObject domainObject, String type) throws NotFoundException {
+    public IsEntity refresh(IsEntity domainObject, String type) throws NotFoundException {
         return database.refresh(domainObject, getClassFromString(type));
     }
 

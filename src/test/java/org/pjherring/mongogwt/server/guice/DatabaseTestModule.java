@@ -9,9 +9,11 @@ package org.pjherring.mongogwt.server.guice;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
-import org.pjherring.mongogwt.shared.annotations.Entity;
+import org.pjherring.mongogwt.server.domain.operation.PojoMapTranslatorTest;
+import org.pjherring.mongogwt.shared.IsEntity;
 import org.pjherring.mongogwt.shared.domain.DomainOne;
 import org.pjherring.mongogwt.shared.domain.DomainTwo;
+import org.pjherring.mongogwt.shared.domain.DomainUnique;
 
 /**
  *
@@ -32,12 +34,14 @@ public class DatabaseTestModule extends DatabaseModule {
     }
 
     @Override
-    protected void bindCollectionNames() {
-        List<String> list = new ArrayList<String>();
-        list.add(DomainOne.class.getAnnotation(Entity.class).name());
-        list.add(DomainTwo.class.getAnnotation(Entity.class).name());
+    protected List<Class<? extends IsEntity>> getEntityList() {
+        List<Class<? extends IsEntity>> entities = new ArrayList<Class<? extends IsEntity>>();
+        entities.add(DomainOne.class);
+        entities.add(DomainTwo.class);
+        entities.add(DomainUnique.class);
+        entities.add(PojoMapTranslatorTest.PojoMapDomain.class);
 
-        bind(stringList).annotatedWith(CollectionNames.class).toInstance(list);
+        return entities;
     }
 
 }

@@ -16,7 +16,10 @@ import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.pjherring.mongogwt.shared.annotations.Entity;
+import org.pjherring.mongogwt.shared.domain.DomainOne;
 import org.pjherring.mongogwt.shared.domain.DomainTwo;
+import org.pjherring.mongogwt.shared.domain.DomainUnique;
 import org.pjherring.mongogwt.shared.domain.operation.Database;
 import static org.junit.Assert.*;
 
@@ -46,6 +49,9 @@ public class UpdateTest {
 
     @Before
     public void setUp() {
+        mongoDb.getCollection(DomainTwo.class.getAnnotation(Entity.class).name()).drop();
+        mongoDb.getCollection(DomainOne.class.getAnnotation(Entity.class).name()).drop();
+        mongoDb.getCollection(DomainUnique.class.getAnnotation(Entity.class).name()).drop();
     }
 
     @After
@@ -54,8 +60,11 @@ public class UpdateTest {
 
     @Test
     public void testUpdate() {
+        String newString = "newstring12";
+        String oldString = "oldstring12";
         //create
         DomainTwo domain = SaveTest.createDomainTwo();
+        domain.setStringData(oldString);
 
         assertNull(domain.getId());
         database.create(domain);
@@ -67,9 +76,8 @@ public class UpdateTest {
             DomainTwo.class,
             true
         );
-        assertEquals(found.getId(), domain.getId());
-        String oldString = found.getStringData();
-        found.setStringData("new String");
+        assertEquals(oldString, found.getStringData());
+        found.setStringData(newString);
         //update
         database.update(found);
 
@@ -79,7 +87,29 @@ public class UpdateTest {
             DomainTwo.class,
             true
         );
-        assertFalse(foundAgain.getStringData().equals(oldString));
+        assertEquals(newString, foundAgain.getStringData());
+    }
+
+    @Test
+    public void testUpdateWithUnique() {
+        String oldString = "some unique string";
+        String newString = "some new string";
+        DomainUnique unique = new DomainUnique();
+        unique.setUniqueString(oldString);
+
+        database.create(unique);
+
+        Query findQuery = new Query().start("_id").is(unique.getId());
+
+        DomainUnique found = database.findOne(findQuery, DomainUnique.class, true);
+
+        assertEquals(oldString, found.getUniqueString());
+
+        found.setUniqueString(newString);
+        database.update(found);
+
+        DomainUnique foundAgain = database.findOne(findQuery, DomainUnique.class, true);
+        assertEquals(newString, foundAgain.getUniqueString());
     }
 
 }

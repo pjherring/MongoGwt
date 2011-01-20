@@ -18,14 +18,14 @@ import org.pjherring.mongogwt.shared.annotations.Entity;
 import org.pjherring.mongogwt.shared.annotations.Reference;
 import org.pjherring.mongogwt.shared.annotations.enums.ReferenceType;
 import org.pjherring.mongogwt.shared.BaseDomainObject;
-import org.pjherring.mongogwt.shared.IsDomainObject;
+import org.pjherring.mongogwt.shared.IsEntity;
 import org.pjherring.mongogwt.shared.exception.InvalidCollectionException;
 import org.pjherring.mongogwt.shared.exception.LengthException;
 import org.pjherring.mongogwt.shared.exception.NullableException;
 import org.pjherring.mongogwt.shared.exception.RegexpException;
 import org.pjherring.mongogwt.shared.exception.UniqueException;
 import org.pjherring.mongogwt.shared.query.Query;
-import org.pjherring.mongogwt.server.guice.DatabaseModule.CollectionNames;
+import org.pjherring.mongogwt.server.guice.DatabaseModule.EntityList;
 
 /**
  *
@@ -35,23 +35,23 @@ public class Validate implements DoesValidate {
 
     private static final Logger LOG = Logger.getLogger("Validate");
 
-    protected List<String> collectionNames;
+    protected List<Class<? extends IsEntity>> entityList;
     protected DB mongoDb;
 
     @Inject
-    public Validate(@CollectionNames List<String> collectionNames, DB mongoDb) {
-        this.collectionNames = collectionNames;
+    public Validate(@EntityList List<Class<? extends IsEntity>> entityList, DB mongoDb) {
+        this.entityList = entityList;
         this.mongoDb = mongoDb;
     }
 
-    public void validatePojo(IsDomainObject pojoToValidate) {
+    public void validatePojo(IsEntity pojoToValidate) {
 
         validateCollection(pojoToValidate.getClass());
 
         Entity domainCollection
             = pojoToValidate.getClass().getAnnotation(Entity.class);
 
-        if (!collectionNames.contains((domainCollection.name()))) {
+        if (!entityList.contains(pojoToValidate.getClass())) {
             throw new InvalidCollectionException(domainCollection.name());
         }
 
@@ -137,8 +137,8 @@ public class Validate implements DoesValidate {
         }
     }
 
-    public void validateCollection(Class<? extends IsDomainObject> clazz) {
-        if (clazz.isAnnotationPresent(Entity.class)) {
+    public void validateCollection(Class<? extends IsEntity> clazz) {
+        if (clazz.isAnnotationPresent(Entity.class) && entityList.contains(clazz)) {
             validateCollection(clazz.getAnnotation(Entity.class));
         } else {
             throw new InvalidCollectionException(clazz.getName());
@@ -146,9 +146,7 @@ public class Validate implements DoesValidate {
     }
 
     public void validateCollection(Entity domainCollection) {
-        if (domainCollection.doPersist()
-            && !collectionNames.contains(domainCollection.name())) {
-
+        if (domainCollection.doPersist()) {
             throw new InvalidCollectionException(domainCollection.name());
         }
     }

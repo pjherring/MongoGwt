@@ -18,7 +18,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 import org.bson.types.ObjectId;
-import org.pjherring.mongogwt.shared.IsDomainObject;
+import org.pjherring.mongogwt.shared.IsEntity;
 import org.pjherring.mongogwt.shared.IsEmbeddable;
 import org.pjherring.mongogwt.shared.domain.operation.DoesCreate;
 import org.pjherring.mongogwt.shared.domain.operation.DoesRead;
@@ -49,7 +49,7 @@ public class Save extends BaseDatabaseOperation
     /*
      * Saves a pojo to the db.
      */
-    public void doCreate(IsDomainObject pojoToSave) {
+    public void doCreate(IsEntity pojoToSave) {
         validator.validatePojo(pojoToSave);
         Entity domainCollection
             = pojoToSave.getClass().getAnnotation(Entity.class);
@@ -68,12 +68,12 @@ public class Save extends BaseDatabaseOperation
         }
     }
 
-    public void doUpdate(IsDomainObject pojoToUpdate) {
+    public void doUpdate(IsEntity pojoToUpdate) {
         validator.validateCollection(pojoToUpdate.getClass());
 
         Entity domainCollection
             = pojoToUpdate.getClass().getAnnotation(Entity.class);
-        IsDomainObject storedPojo = reader.findById(pojoToUpdate.getId(), pojoToUpdate.getClass(), true);
+        IsEntity storedPojo = reader.findById(pojoToUpdate.getId(), pojoToUpdate.getClass(), true);
 
         for (Method method : storedPojo.getClass().getMethods()) {
             if (method.isAnnotationPresent(Column.class)) {
@@ -195,8 +195,8 @@ public class Save extends BaseDatabaseOperation
              * grab the IsDomainObject from the getter
              * if its not saved, save it and return the ObjectId
              */
-            IsDomainObject referencedDomainObjet
-                = (IsDomainObject) getter.invoke(savingFromDomainObj);
+            IsEntity referencedDomainObjet
+                = (IsEntity) getter.invoke(savingFromDomainObj);
             //if this object has not been persisted save it
             if (referencedDomainObjet.getId() == null) {
                 doCreate(referencedDomainObjet);
@@ -211,11 +211,11 @@ public class Save extends BaseDatabaseOperation
              */
             List<ObjectId> idsToBeSaved
                 = new ArrayList<ObjectId>();
-            Iterable<IsDomainObject> collection =
-                (Iterable<IsDomainObject>) getter.invoke(savingFromDomainObj);
+            Iterable<IsEntity> collection =
+                (Iterable<IsEntity>) getter.invoke(savingFromDomainObj);
             //iterate throw the set or list that came back and get a list
             //of object ids
-            for (IsDomainObject collectionMember : collection) {
+            for (IsEntity collectionMember : collection) {
 
                 //make sure this is saved
                 if (collectionMember.getId() == null) {

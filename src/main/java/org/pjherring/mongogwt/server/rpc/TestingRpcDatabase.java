@@ -12,7 +12,7 @@ import java.util.PriorityQueue;
 import java.util.Queue;
 import java.util.concurrent.PriorityBlockingQueue;
 import org.pjherring.mongogwt.client.rpc.RpcDatabase;
-import org.pjherring.mongogwt.shared.IsDomainObject;
+import org.pjherring.mongogwt.shared.IsEntity;
 import org.pjherring.mongogwt.shared.query.Query;
 
 /**
@@ -73,7 +73,7 @@ public class TestingRpcDatabase implements RpcDatabase {
         doRefreshSuccessQueue.add(isSuccess);
     }
 
-    public <T extends IsDomainObject> void create(IsDomainObject domainObject, Class<T> type, AsyncCallback<T> callback) {
+    public <T extends IsEntity> void create(IsEntity domainObject, Class<T> type, AsyncCallback<T> callback) {
         if (createQueue.size() > 0 && doCreateSuccessQueue.size() > 0) {
             boolean doSuccess = doCreateSuccessQueue.remove();
             if (doSuccess) {
@@ -86,7 +86,7 @@ public class TestingRpcDatabase implements RpcDatabase {
         }
     }
 
-    public <T extends IsDomainObject> void find(Query query, Class<T> type, boolean doFanOut, AsyncCallback<List<T>> callback) {
+    public <T extends IsEntity> void find(Query query, Class<T> type, boolean doFanOut, AsyncCallback<List<T>> callback) {
         if (findQueue.size() > 0 && doFindSuccessQueue.size() > 0) {
             if (doFindSuccessQueue.remove()) {
                 callback.onSuccess((List<T>) findQueue.remove());
@@ -98,7 +98,7 @@ public class TestingRpcDatabase implements RpcDatabase {
         }
     }
 
-    public <T extends IsDomainObject> void findOne(Query query, Class<T> type, boolean doFanOut, AsyncCallback<T> callback) {
+    public <T extends IsEntity> void findOne(Query query, Class<T> type, boolean doFanOut, AsyncCallback<T> callback) {
         if (findQueue.size() > 0 && doFindSuccessQueue.size() > 0) {
             if (doFindSuccessQueue.remove()) {
                 callback.onSuccess((T) findQueue.remove());
@@ -110,7 +110,7 @@ public class TestingRpcDatabase implements RpcDatabase {
         }
     }
 
-    public <T extends IsDomainObject> void update(T isDomainObject, AsyncCallback<T> callback) {
+    public <T extends IsEntity> void update(T isDomainObject, AsyncCallback<T> callback) {
         if (updateQueue.size() > 0 && doUpdateSuccessQueue.size() > 0) {
             if (doUpdateSuccessQueue.remove()) {
                 callback.onSuccess((T) updateQueue.remove());
@@ -137,7 +137,7 @@ public class TestingRpcDatabase implements RpcDatabase {
         }
     }
 
-    public <T extends IsDomainObject> void refresh(IsDomainObject domainObject, Class<T> type, AsyncCallback<T> callback) {
+    public <T extends IsEntity> void refresh(IsEntity domainObject, Class<T> type, AsyncCallback<T> callback) {
         if (refreshQueue.size() > 0 && doRefreshSuccessQueue.size() > 0) {
             if (doRefreshSuccessQueue.remove()) {
                 callback.onSuccess((T) refreshQueue.remove());

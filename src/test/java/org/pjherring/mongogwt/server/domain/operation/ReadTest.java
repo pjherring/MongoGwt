@@ -6,13 +6,12 @@
 package org.pjherring.mongogwt.server.domain.operation;
 
 
+import org.pjherring.mongogwt.shared.annotations.Entity;
 import java.util.List;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.mongodb.DB;
-import com.mongodb.QueryBuilder;
 import java.util.logging.Logger;
-import java.util.regex.Pattern;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -55,12 +54,12 @@ public class ReadTest {
 
     @Before
     public void setUp() {
+        mongoDb.getCollection(DomainTwo.class.getAnnotation(Entity.class).name()).drop();
+        mongoDb.getCollection(DomainOne.class.getAnnotation(Entity.class).name()).drop();
     }
 
     @After
     public void tearDown() {
-        mongoDb.getCollection("domainOne").drop();
-        mongoDb.getCollection("domainTwo").drop();
     }
 
     @Test
