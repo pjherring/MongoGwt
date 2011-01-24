@@ -31,7 +31,9 @@ import org.junit.Test;
 import org.pjherring.mongogwt.server.guice.DataAccessTestModule;
 import org.pjherring.mongogwt.server.guice.DatabaseModule;
 import org.pjherring.mongogwt.shared.BaseDomainObject;
+import org.pjherring.mongogwt.shared.IsEmbeddable;
 import org.pjherring.mongogwt.shared.annotations.Column;
+import org.pjherring.mongogwt.shared.annotations.Embedded;
 import org.pjherring.mongogwt.shared.annotations.Entity;
 import org.pjherring.mongogwt.shared.annotations.Reference;
 import org.pjherring.mongogwt.shared.annotations.enums.ReferenceType;
@@ -69,6 +71,7 @@ public class DBObjectToPojoTest extends EasyMockSupport {
             list.add(SimpleEntity.class);
             list.add(EntityOneToMany.class);
             list.add(EntityManyToOne.class);
+            list.add(WithEmbedded.class);
 
             return list;
         }
@@ -152,6 +155,70 @@ public class DBObjectToPojoTest extends EasyMockSupport {
         public void setManyToOne(SimpleEntity manyToOne) {
             this.manyToOne = manyToOne;
         }
+    }
+
+    public static class EmbeddedEntity implements IsEmbeddable {
+        private String data;
+
+        @Column(name="data")
+        public String getData() {
+            return data;
+        }
+
+        public void setData(String data) {
+            this.data = data;
+        }
+    }
+
+    public static class EntityWithCollections extends BaseDomainObject {
+
+        private Set<String> stringSet;
+        private List<Integer> integerList;
+        private Date[] dateArray;
+
+        @Column(name="stringSet")
+        public Set<String> getStringSet() {
+            return stringSet;
+        }
+
+        public void setStringSet(Set<String> stringSet) {
+            this.stringSet = stringSet;
+        }
+
+        @Column(name="integerList")
+        public List<Integer> getIntegerList() {
+            return integerList;
+        }
+
+        public void setIntegerList(List<Integer> integerList) {
+            this.integerList = integerList;
+        }
+
+        @Column(name="dateArray")
+        public Date[] getDateArray() {
+            return dateArray;
+        }
+
+        public void setDateArray(Date[] dateArray) {
+            this.dateArray = dateArray;
+        }
+    }
+
+    @Entity(name="withEmbed")
+    public static class WithEmbedded extends BaseDomainObject {
+
+        private EmbeddedEntity embed;
+
+        @Column(name="embed")
+        @Embedded
+        public EmbeddedEntity getEmbed() {
+            return embed;
+        }
+
+        public void setEmbed(EmbeddedEntity embed) {
+            this.embed = embed;
+        }
+
     }
 
     public static class DBObjectToPojoWithMock extends DBObjectToPojoImpl {
@@ -300,8 +367,42 @@ public class DBObjectToPojoTest extends EasyMockSupport {
     }
 
     @Test
-    public void test_InvalidReference() {
-        //TODO: WRITE THIS TEST
+    public void test_EntityWithEmbedded() {
+        EmbeddedEntity embedded = new EmbeddedEntity();
+        embedded.setData("data");
+        WithEmbedded entity = new WithEmbedded();
+        entity.setEmbed(embedded);
+        DBObject dbObject = pojoToDBObject.translate(entity);
+        WithEmbedded constructed = dbObjectToPojo.translate(dbObject, WithEmbedded.class);
+        assertEquals("data", constructed.getEmbed().getData());
     }
 
+    @Test
+    public void test_EntityWithCollectionsArrays() {
+        EntityWithCollections entity = new EntityWithCollections();
+        entity.setStringSet(new HashSet(Arrays.asList(new String[]{"one", "two", "three"})));
+        entity.setIntegerList(Arrays.asList(new Integer[]{1, 2, 3}));
+        entity.setDateArray(new Date[]{new Date(23532532), new Date(232432423), new Date(91293123)});
+
+        DBObject entityAsDB = pojoToDBObject.translate(entity);
+        EntityWithCollections constructed
+            = dbObjectToPojo.translate(entityAsDB, EntityWithCollections.class);
+        assertEquals(entity.getStringSet(), constructed.getStringSet());
+        assertArrayEquals(entity.getDateArray(), constructed.getDateArray());
+        assertEquals(entity.getIntegerList(), constructed.getIntegerList());
+    }
+
+    @Test
+    public void test_cacheStats() {
+        DBObject simpleDB = new BasicDBObject();
+        simpleDB.put("data", "simple");
+
+        dbObjectToPojo.translate(simpleDB, SimpleEntity.class);
+        assertEquals(1, dbObjectToPojo.getCacheMisses());
+        assertEquals(0, dbObjectToPojo.getCacheHits());
+        dbObjectToPojo.translate(simpleDB, SimpleEntity.class);
+        assertEquals(1, dbObjectToPojo.getCacheMisses());
+        assertEquals(1, dbObjectToPojo.getCacheHits());
+        
+    }
 }

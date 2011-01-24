@@ -44,3 +44,8 @@ through all of an Entity's methods and helps us make objects quicker.
 Therefore, there should be a cache hit when an Entity is mapped twice, and
 there should be a cache miss when an Entity has never been mapped.
 
+One feature that must be supported collections of built in types. Can we have
+sets of sets? Can we lists of lists? When is this ever needed? I can see the
+need for a list of numbers, but I can not see the need for a list of lists of 
+numbers.
+

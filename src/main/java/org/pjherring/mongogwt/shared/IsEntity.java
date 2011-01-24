@@ -5,7 +5,6 @@
 
 package org.pjherring.mongogwt.shared;
 
-import com.google.gwt.user.client.rpc.IsSerializable;
 import java.util.Date;
 
 /**

@@ -12,8 +12,10 @@ import com.mongodb.BasicDBObject;
 import com.mongodb.DB;
 import com.mongodb.DBObject;
 import com.mongodb.DBRef;
+import java.lang.reflect.Array;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -98,7 +100,7 @@ public class PojoToDBObjectImpl implements PojoToDBObject {
      * @param isStorable The pojo to transform.
      * @param entityTranslationMap The translation map to use for transformation.
      */
-    private <T extends IsStorable> DBObject translateFromCache(
+    private <T extends IsStorable, S> DBObject translateFromCache(
         T isStorable,
         Map<String, Method> entityTranslationMap) {
 
@@ -125,10 +127,15 @@ public class PojoToDBObjectImpl implements PojoToDBObject {
                 && value instanceof IsEmbeddable) {
 
                 value = (DBObject) translate((IsEmbeddable) value);
+
             } else if (getter.isAnnotationPresent(Reference.class)) {
 
                 Reference reference = getter.getAnnotation(Reference.class);
                 value = getValueFromReference(value, reference);
+
+            } else if (value instanceof Collection) {
+                //we set all of this to be arrays, this is a type MongoDB understands
+                value = collectionToArray((Collection) value);
             }
 
             toReturn.put(columnName, value);
@@ -143,6 +150,25 @@ public class PojoToDBObjectImpl implements PojoToDBObject {
         }
 
         return toReturn;
+    }
+
+    /*
+     * This method takes a collection of a generic type in and transforms it intoo
+     * an array. This will only work for collections with one or more items, which is
+     * fine because we don't care about empty collections and don't need to store
+     * them.
+     *
+     * @param c The collection to transform
+     * @return the new array or null
+     */
+    private <T> T[] collectionToArray(final Collection<T> c) {
+        if (c.size() > 0) {
+            Class<T> componenetType = (Class<T>) c.iterator().next().getClass();
+            T[] compontentTypeArray = (T[]) Array.newInstance(componenetType, c.size());
+            return c.toArray(compontentTypeArray);
+        } else {
+            return null;
+        }
     }
 
     /*

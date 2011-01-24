@@ -5,6 +5,7 @@
 
 package org.pjherring.mongogwt.server.domain.operation;
 
+import java.util.logging.Logger;
 import org.bson.types.ObjectId;
 import java.util.Set;
 import java.lang.reflect.Method;
@@ -32,7 +33,6 @@ import org.pjherring.mongogwt.server.guice.DatabaseModule;
 import org.pjherring.mongogwt.shared.BaseDomainObject;
 import org.pjherring.mongogwt.shared.IsEmbeddable;
 import org.pjherring.mongogwt.shared.IsEntity;
-import org.pjherring.mongogwt.shared.IsStorable;
 import org.pjherring.mongogwt.shared.annotations.Column;
 import org.pjherring.mongogwt.shared.annotations.Embedded;
 import org.pjherring.mongogwt.shared.annotations.Entity;
@@ -51,6 +51,7 @@ public class PojoToDBObjectTest extends EasyMockSupport {
 
     private static final Injector injector =
         Guice.createInjector(new DatabaseTestModule(), new DataAccessTestModule());
+    private final static Logger LOG = Logger.getLogger(PojoToDBObjectTest.class.getSimpleName());
     private PojoToDBObject pojoToDBObject;
     private DB mongoDb;
 
@@ -175,6 +176,39 @@ public class PojoToDBObjectTest extends EasyMockSupport {
 
         public void setSomeData(String someData) {
             this.someData = someData;
+        }
+    }
+
+    public static class EntityWithCollections extends BaseDomainObject {
+        private Set<String> stringSet;
+        private List<Integer> integerList;
+        private int[] intArray;
+
+        @Column(name="stringSet")
+        public Set<String> getStringSet() {
+            return stringSet;
+        }
+
+        public void setStringSet(Set<String> stringSet) {
+            this.stringSet = stringSet;
+        }
+
+        @Column(name="integerList")
+        public List<Integer> getIntegerList() {
+            return integerList;
+        }
+
+        public void setIntegerList(List<Integer> integerList) {
+            this.integerList = integerList;
+        }
+
+        @Column(name="intArray")
+        public int[] getIntArray() {
+            return intArray;
+        }
+
+        public void setIntArray(int[] intArray) {
+            this.intArray = intArray;
         }
     }
 
@@ -441,6 +475,41 @@ public class PojoToDBObjectTest extends EasyMockSupport {
         DBObject translated = pojoToDBObject.translate(basicEntity);
 
         assertNull(translated.get("_id"));
+    }
+
+    @Test
+    public void test_colletionOfBuiltInTypes() {
+        EntityWithCollections entity = new EntityWithCollections();
+        entity.setIntArray(new int[]{1,2,3});
+        entity.setStringSet(new HashSet(Arrays.asList(new String[]{"one", "two", "three"})));
+        entity.setIntegerList(Arrays.asList(new Integer[]{1,2,3}));
+
+        DBObject constructed = pojoToDBObject.translate(entity);
+        assertEquals(Integer[].class, constructed.get("integerList").getClass());
+        assertEquals(int[].class, constructed.get("intArray").getClass());
+        assertEquals(String[].class, constructed.get("stringSet").getClass());
+
+        List<String> stringSetAsList =  Arrays.asList((String[]) constructed.get("stringSet"));
+        LOG.info(stringSetAsList.get(0));
+        assertTrue(stringSetAsList.contains("one"));
+        assertTrue(stringSetAsList.contains("two"));
+        assertTrue(stringSetAsList.contains("three"));
+
+        int[] intArray = (int[]) constructed.get("intArray");
+        assertEquals(entity.getIntArray(), intArray);
+        assertArrayEquals(
+            entity.getIntegerList().toArray(new Integer[entity.getIntegerList().size()]),
+            (Integer[]) constructed.get("integerList")
+        );
+    }
+
+    @Test
+    public void test_emptyCollection() {
+        EntityWithCollections entity = new EntityWithCollections();
+        DBObject constructed = pojoToDBObject.translate(entity);
+        assertNull(constructed.get("integerList"));
+        assertNull(constructed.get("stringSet"));
+        assertNull(constructed.get("intArray"));
     }
 
 }
