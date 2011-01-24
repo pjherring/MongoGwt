@@ -19,7 +19,7 @@ import org.pjherring.mongogwt.shared.annotations.enums.ReferenceType;
  *
  * @author pjherring
  */
-@Entity(doPersist=true, name="domainTwo")
+@Entity( name="domainTwo")
 public class DomainTwo extends BaseDomainObject {
 
     private final static Logger LOG = Logger.getLogger(DomainTwo.class.getName());

@@ -19,7 +19,7 @@ import org.pjherring.mongogwt.shared.annotations.Reference;
 import org.pjherring.mongogwt.shared.annotations.enums.ReferenceType;
 import org.pjherring.mongogwt.shared.BaseDomainObject;
 import org.pjherring.mongogwt.shared.IsEntity;
-import org.pjherring.mongogwt.shared.exception.InvalidCollectionException;
+import org.pjherring.mongogwt.shared.exception.InvalidEntity;
 import org.pjherring.mongogwt.shared.exception.LengthException;
 import org.pjherring.mongogwt.shared.exception.NullableException;
 import org.pjherring.mongogwt.shared.exception.RegexpException;
@@ -52,7 +52,7 @@ public class Validate implements DoesValidate {
             = pojoToValidate.getClass().getAnnotation(Entity.class);
 
         if (!entityList.contains(pojoToValidate.getClass())) {
-            throw new InvalidCollectionException(domainCollection.name());
+            throw new InvalidEntity(domainCollection.name());
         }
 
         for (Method method : pojoToValidate.getClass().getMethods()) {
@@ -141,14 +141,12 @@ public class Validate implements DoesValidate {
         if (clazz.isAnnotationPresent(Entity.class) && entityList.contains(clazz)) {
             validateCollection(clazz.getAnnotation(Entity.class));
         } else {
-            throw new InvalidCollectionException(clazz.getName());
+            throw new InvalidEntity(clazz.getName());
         }
     }
 
     public void validateCollection(Entity domainCollection) {
-        if (domainCollection.doPersist()) {
-            throw new InvalidCollectionException(domainCollection.name());
-        }
+        throw new InvalidEntity(domainCollection.name());
     }
 
 }

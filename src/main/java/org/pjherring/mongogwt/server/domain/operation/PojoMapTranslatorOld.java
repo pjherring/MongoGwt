@@ -34,7 +34,7 @@ import org.pjherring.mongogwt.shared.annotations.Entity;
 import org.pjherring.mongogwt.shared.annotations.Enumerated;
 import org.pjherring.mongogwt.shared.annotations.Reference;
 import org.pjherring.mongogwt.shared.annotations.enums.ReferenceType;
-import org.pjherring.mongogwt.shared.exception.InvalidCollectionException;
+import org.pjherring.mongogwt.shared.exception.InvalidEntity;
 import org.pjherring.mongogwt.shared.exception.InvalidReference;
 
 /**
@@ -271,7 +271,7 @@ public class PojoMapTranslatorOld {
         boolean doFanOut) {
 
         if (!clazz.isAnnotationPresent(Entity.class)) {
-            throw new InvalidCollectionException(clazz.getName());
+            throw new InvalidEntity(clazz.getName());
         }
 
         T pojoToBuild = null;

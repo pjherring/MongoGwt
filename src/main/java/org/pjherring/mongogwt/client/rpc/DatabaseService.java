@@ -10,7 +10,7 @@ import com.google.gwt.user.client.rpc.RemoteServiceRelativePath;
 import java.util.List;
 import org.pjherring.mongogwt.shared.IsEntity;
 import org.pjherring.mongogwt.shared.exception.ConstraintException;
-import org.pjherring.mongogwt.shared.exception.InvalidCollectionException;
+import org.pjherring.mongogwt.shared.exception.InvalidEntity;
 import org.pjherring.mongogwt.shared.exception.InvalidColumnException;
 import org.pjherring.mongogwt.shared.exception.InvalidReference;
 import org.pjherring.mongogwt.shared.exception.LengthException;
@@ -30,7 +30,7 @@ import org.pjherring.mongogwt.shared.query.Query;
 @RemoteServiceRelativePath("data")
 public interface DatabaseService extends RemoteService {
     IsEntity create(IsEntity domainObject)
-        throws NullableException, ConstraintException, InvalidCollectionException,
+        throws NullableException, ConstraintException, InvalidEntity,
         InvalidColumnException, ValidationException, InvalidReference,
         LengthException, RegexpException, UniqueException;
     List<IsEntity> find(Query query, String type, boolean doFanOut) throws NotFoundException, QueryException;

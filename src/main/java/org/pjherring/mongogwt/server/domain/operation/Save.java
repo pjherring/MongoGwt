@@ -28,7 +28,7 @@ import org.pjherring.mongogwt.shared.annotations.Entity;
 import org.pjherring.mongogwt.shared.annotations.Enumerated;
 import org.pjherring.mongogwt.shared.annotations.Reference;
 import org.pjherring.mongogwt.shared.annotations.enums.ReferenceType;
-import org.pjherring.mongogwt.shared.exception.InvalidCollectionException;
+import org.pjherring.mongogwt.shared.exception.InvalidEntity;
 import org.pjherring.mongogwt.shared.exception.ValidationException;
 
 /**
@@ -55,7 +55,6 @@ public class Save extends BaseDatabaseOperation
             = pojoToSave.getClass().getAnnotation(Entity.class);
 
 
-        if (domainCollection.doPersist()) {
 
             Map<String, Object> valueMap = getValueMap(pojoToSave, domainCollection);
             DBObject dbObjectToBeSaved = BasicDBObjectBuilder.start(valueMap).get();
@@ -65,7 +64,6 @@ public class Save extends BaseDatabaseOperation
             ObjectId objectId = (ObjectId) dbObjectToBeSaved.get("_id");
             pojoToSave.setId(objectId.toString());
             pojoToSave.setCreatedDatetime(new Date(objectId.getTime()));
-        }
     }
 
     public void doUpdate(IsEntity pojoToUpdate) {
@@ -154,7 +152,7 @@ public class Save extends BaseDatabaseOperation
                     if (valueToPutInMap instanceof IsEmbeddable) {
 
                         if (!valueToPutInMap.getClass().isAnnotationPresent(Entity.class)) {
-                            throw new InvalidCollectionException(
+                            throw new InvalidEntity(
                                 valueToPutInMap.getClass().getSimpleName()
                             );
                         }

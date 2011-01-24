@@ -1,0 +1,16 @@
+Create
+
+Our creation code should only do one thing, persist a pojo. Therefore, any
+entity given to it that is already persisted (in this case has an ID) should be
+rejected, and there should be an exception thrown. It should set the newly
+persisted objects ID and createdDatetime. It should only persist Objects that
+implement IsEntity and is annotated with Entity and is in the list of valid
+entities designated from our Guice module.
+
+Reqs
+    1. Persists an entity
+    2. Sets the id and createdDatetime after persistance
+    3. Does not persist already persisted entites but throws an exception
+    4. Does not persist entities that are not valid
+        b. Including objects that are not annotated with Entity
+        c. Including objcets not in the Entity List

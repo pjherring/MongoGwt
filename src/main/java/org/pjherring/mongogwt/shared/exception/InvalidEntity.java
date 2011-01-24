@@ -9,13 +9,13 @@ package org.pjherring.mongogwt.shared.exception;
  *
  * @author pjherring
  */
-public class InvalidCollectionException extends ValidationException {
+public class InvalidEntity extends ValidationException {
 
     protected String collectionName;
 
-    public InvalidCollectionException() {}
+    public InvalidEntity() {}
 
-    public InvalidCollectionException(String collectionName) {
+    public InvalidEntity(String collectionName) {
         super("You have tried to do a database value on an invalid collection name.");
         this.collectionName = collectionName;
     }

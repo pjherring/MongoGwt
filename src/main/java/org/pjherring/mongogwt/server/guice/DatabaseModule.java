@@ -41,7 +41,7 @@ public abstract class DatabaseModule extends AbstractModule {
 
     private static final Logger LOG = Logger.getLogger("Guice DatabaseModule");
 
-    protected TypeLiteral entityList = new TypeLiteral<List<Class<? extends IsEntity>>>(){;};
+    protected TypeLiteral entityListTypeLiteral = new TypeLiteral<List<Class<? extends IsEntity>>>(){;};
 
     @Retention(RetentionPolicy.RUNTIME)
     @Target(ElementType.PARAMETER)
@@ -57,7 +57,7 @@ public abstract class DatabaseModule extends AbstractModule {
         bind(DoesValidate.class).to(Validate.class);
 
         bind(Database.class).to(DatabaseImpl.class).in(Singleton.class);
-        bind(entityList).annotatedWith(EntityList.class)
+        bind(entityListTypeLiteral).annotatedWith(EntityList.class)
             .toInstance(getEntityList());
     }
 

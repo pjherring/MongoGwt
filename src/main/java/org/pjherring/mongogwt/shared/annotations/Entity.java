@@ -18,5 +18,4 @@ import java.lang.annotation.Target;
 @Target(ElementType.TYPE)
 public @interface Entity {
     String name();
-    boolean doPersist() default true;
 }

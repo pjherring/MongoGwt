@@ -31,7 +31,7 @@ import org.pjherring.mongogwt.shared.annotations.Enumerated;
 import org.pjherring.mongogwt.shared.annotations.Reference;
 import org.pjherring.mongogwt.shared.annotations.enums.EnumeratedType;
 import org.pjherring.mongogwt.shared.annotations.enums.ReferenceType;
-import org.pjherring.mongogwt.shared.exception.InvalidCollectionException;
+import org.pjherring.mongogwt.shared.exception.InvalidEntity;
 import org.pjherring.mongogwt.shared.exception.InvalidReference;
 import org.pjherring.mongogwt.shared.exception.NotFoundException;
 import org.pjherring.mongogwt.shared.exception.QueryException;
@@ -231,7 +231,7 @@ public class Read extends BaseDatabaseOperation implements DoesRead {
                 LOG.warning("INVALID COLLECTION: " + clazz.getSimpleName());
             }
 
-            throw new InvalidCollectionException(
+            throw new InvalidEntity(
                 clazz.getSimpleName()
             );
         }
@@ -243,7 +243,7 @@ public class Read extends BaseDatabaseOperation implements DoesRead {
 
         //throw exception if this is not annotated with DbCollection
         if (!collectionClass.isAnnotationPresent(Entity.class)) {
-            throw new InvalidCollectionException(collectionClass.getSimpleName());
+            throw new InvalidEntity(collectionClass.getSimpleName());
         }
 
         Entity dbCollection = collectionClass.getAnnotation(Entity.class);
