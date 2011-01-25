@@ -21,8 +21,10 @@ import org.junit.Test;
 import org.pjherring.mongogwt.server.guice.DataAccessTestModule;
 import org.pjherring.mongogwt.server.guice.DatabaseModule;
 import org.pjherring.mongogwt.shared.BaseDomainObject;
+import org.pjherring.mongogwt.shared.IsEmbeddable;
 import org.pjherring.mongogwt.shared.IsEntity;
 import org.pjherring.mongogwt.shared.annotations.Column;
+import org.pjherring.mongogwt.shared.annotations.Embedded;
 import org.pjherring.mongogwt.shared.annotations.Entity;
 import org.pjherring.mongogwt.shared.domain.operation.Create;
 import org.pjherring.mongogwt.shared.exception.AlreadyPersistedException;
@@ -60,6 +62,7 @@ public class CreateTest {
             List<Class<? extends IsEntity>> entityList =
                 new ArrayList<Class<? extends IsEntity>>();
             entityList.add(SimpleDomain.class);
+            entityList.add(WithEmbed.class);
 
             return entityList;
         }
@@ -84,6 +87,35 @@ public class CreateTest {
 
     @Entity(name="notInList")
     public static class NotInList extends BaseDomainObject {}
+
+    public static class EmbedEntity implements IsEmbeddable {
+        private String data;
+
+        @Column(name="data")
+        public String getData() {
+            return data;
+        }
+
+        public void setData(String data) {
+            this.data = data;
+        }
+    }
+
+    @Entity(name="withEmbed")
+    public static class WithEmbed extends BaseDomainObject {
+
+        private EmbedEntity embedEntity;
+
+        @Column(name="embed")
+        @Embedded
+        public EmbedEntity getEmbedEntity() {
+            return embedEntity;
+        }
+
+        public void setEmbedEntity(EmbedEntity embedEntity) {
+            this.embedEntity = embedEntity;
+        }
+    }
 
     @BeforeClass
     public static void setUpClass() throws Exception {
@@ -143,5 +175,14 @@ public class CreateTest {
         create.doCreate(entity);
     }
 
+    @Test
+    public void persistWithEmbedded() {
+        WithEmbed entity = new WithEmbed();
+        entity.setEmbedEntity(new EmbedEntity());
+        entity.getEmbedEntity().setData("data");
+
+        create.doCreate(entity);
+        assertEquals("data", entity.getEmbedEntity().getData());
+    }
 
 }

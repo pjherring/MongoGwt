@@ -22,7 +22,7 @@ import java.util.List;
 import java.util.logging.Logger;
 import org.pjherring.mongogwt.server.domain.operation.Delete;
 import org.pjherring.mongogwt.server.domain.DatabaseImpl;
-import org.pjherring.mongogwt.server.domain.operation.Read;
+import org.pjherring.mongogwt.server.domain.operation.ReadBu;
 import org.pjherring.mongogwt.server.domain.operation.Save;
 import org.pjherring.mongogwt.server.domain.operation.Validator;
 import org.pjherring.mongogwt.shared.IsEntity;
@@ -53,7 +53,7 @@ public abstract class DatabaseModule extends AbstractModule {
         bind(DoesCreate.class).to(Save.class);
         bind(DoesUpdate.class).to(Save.class);
         bind(DoesDelete.class).to(Delete.class);
-        bind(DoesRead.class).to(Read.class);
+        bind(DoesRead.class).to(ReadBu.class);
         bind(DoesValidate.class).to(Validator.class);
 
         bind(Database.class).to(DatabaseImpl.class).in(Singleton.class);
