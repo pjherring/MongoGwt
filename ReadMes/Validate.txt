@@ -1,0 +1,14 @@
+The validator should take an IsEntity in and throw exceptions if it has
+validation problems. It should also be able to return a map that has column
+names pointing to exception classes. It should validate based off of the Column
+annotations. It need not do validation on references because one can not persist
+an Entity that references an unpersisted Entity. It will need to validate
+embedded objects.
+
+1. Take in an IsStorable
+2. Throw exceptions do to validation constraints based on @Column annotation
+    a. Unique constraint
+    b. test for length
+    c. test for null value allowed
+    d. test by regular expression
+

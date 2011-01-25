@@ -15,7 +15,7 @@ import java.lang.annotation.Target;
  * @author pjherring
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.METHOD)
+@Target(ElementType.TYPE)
 public @interface Unique {
-    Column[] columns();
+    String[] value();
 }

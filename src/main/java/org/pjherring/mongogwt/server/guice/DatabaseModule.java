@@ -24,7 +24,7 @@ import org.pjherring.mongogwt.server.domain.operation.Delete;
 import org.pjherring.mongogwt.server.domain.DatabaseImpl;
 import org.pjherring.mongogwt.server.domain.operation.Read;
 import org.pjherring.mongogwt.server.domain.operation.Save;
-import org.pjherring.mongogwt.server.domain.operation.Validate;
+import org.pjherring.mongogwt.server.domain.operation.Validator;
 import org.pjherring.mongogwt.shared.IsEntity;
 import org.pjherring.mongogwt.shared.domain.operation.DoesCreate;
 import org.pjherring.mongogwt.shared.domain.operation.DoesDelete;
@@ -54,7 +54,7 @@ public abstract class DatabaseModule extends AbstractModule {
         bind(DoesUpdate.class).to(Save.class);
         bind(DoesDelete.class).to(Delete.class);
         bind(DoesRead.class).to(Read.class);
-        bind(DoesValidate.class).to(Validate.class);
+        bind(DoesValidate.class).to(Validator.class);
 
         bind(Database.class).to(DatabaseImpl.class).in(Singleton.class);
         bind(entityListTypeLiteral).annotatedWith(EntityList.class)
