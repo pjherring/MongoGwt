@@ -280,20 +280,6 @@ public class Query implements IsSerializable {
     }
 
     /*
-     * Right now this is not implemented like a SELECT DISTINCT in SQL
-     * it will not be included.
-    public Query setDistinctKey(String distinctKey) {
-        this.distinctKey = distinctKey;
-        return this;
-    }
-
-    public String getDistinctKey() {
-        return distinctKey;
-    }
-     *
-     */
-
-    /*
      * This is mostly for debugging, but should return a string that represents
      * the query as a JS Object.
      */
