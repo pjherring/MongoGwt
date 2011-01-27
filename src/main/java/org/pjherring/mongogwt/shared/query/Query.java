@@ -17,6 +17,34 @@ import java.util.Map;
  */
 public class Query implements IsSerializable {
 
+    public static class Reference implements IsSerializable {
+        private String id;
+        private Class entityReference;
+
+        public Reference() {}
+
+        public Reference(String id, Class entityReference) {
+            this.id = id;
+            this.entityReference = entityReference;
+        }
+
+        public String getId() {
+            return id;
+        }
+
+        public void setId(String id) {
+            this.id = id;
+        }
+
+        public Class getEntityReference() {
+            return entityReference;
+        }
+
+        public void setEntityReference(Class entityReference) {
+            this.entityReference = entityReference;
+        }
+    }
+
     /*
      * This contains a string value of the column that will be searched on.
      */
@@ -37,6 +65,11 @@ public class Query implements IsSerializable {
      * to compile the Strings into @link java.util.regex.Pattern
      */
     protected List<String> regexpKeys = new ArrayList<String>();
+
+    /*
+     * Holds the keys of reference ids.
+     */
+
     /*
      * The limit to our query.
      */

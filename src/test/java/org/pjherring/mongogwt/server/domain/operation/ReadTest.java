@@ -141,6 +141,9 @@ public class ReadTest extends EasyMockSupport {
         mongoDb.getCollection(
             SimpleEntity.class.getAnnotation(Entity.class).name()
         ).drop();
+        mongoDb.getCollection(
+            WithSimpleRef.class.getAnnotation(Entity.class).name()
+        ).drop();
     }
 
     @After
@@ -258,6 +261,73 @@ public class ReadTest extends EasyMockSupport {
         SimpleEntity found = read.findById(entity.getId(), SimpleEntity.class, true);
         assertEquals(entity.getId(), entity.getId());
     }
+
+    @Test
+    public void testFindReferences_doFanOut() {
+        SimpleEntity simple = new SimpleEntity();
+        simple.setData("data");
+
+        create.doCreate(simple);
+
+        WithSimpleRef withRef = new WithSimpleRef();
+        withRef.setSimple(simple);
+
+        create.doCreate(withRef);
+
+        Query query = new Query()
+            .start("data").is("data");
+
+        SimpleEntity found = read.findOne(query, SimpleEntity.class, true);
+        assertEquals(found.getId(), simple.getId());
+        assertNotNull(found.getRefSet());
+
+        Set<WithSimpleRef> set = found.getRefSet();
+        assertEquals(1, set.size());
+        assertEquals(withRef.getId(), set.iterator().next().getId());
+
+        Query queryForWithRef = new Query()
+            .start("simple").is(new Query.Reference(simple.getId(), SimpleEntity.class));
+
+        WithSimpleRef foundWithRef = read.findOne(queryForWithRef, WithSimpleRef.class, true);
+        assertNotNull(foundWithRef.getSimple());
+        assertEquals(simple.getId(), foundWithRef.getSimple().getId());
+    }
+
+    @Test
+    public void testFindReferences_doNoFanOut() {
+        SimpleEntity simple = new SimpleEntity();
+        simple.setData("data");
+
+        create.doCreate(simple);
+
+        WithSimpleRef withRef = new WithSimpleRef();
+        withRef.setSimple(simple);
+
+        create.doCreate(withRef);
+
+        Query query = new Query()
+            .start("data").is("data");
+
+        SimpleEntity found = read.findOne(query, SimpleEntity.class, false);
+        assertEquals(found.getId(), simple.getId());
+        assertNotNull(found.getRefSet());
+        assertNotNull(found.getData());
+
+        Set<WithSimpleRef> set = found.getRefSet();
+        assertEquals(1, set.size());
+        WithSimpleRef withRefFromSet = set.iterator().next();
+        assertEquals(withRef.getId(), withRefFromSet.getId());
+        assertNull(withRefFromSet.getSimple());
+
+        Query queryForWithRef = new Query()
+            .start("simple").is(new Query.Reference(simple.getId(), SimpleEntity.class));
+
+        WithSimpleRef foundWithRef = read.findOne(queryForWithRef, WithSimpleRef.class, false);
+        assertNotNull(foundWithRef.getSimple());
+        assertEquals(simple.getId(), foundWithRef.getSimple().getId());
+        assertNull(foundWithRef.getSimple().getData());
+    }
+
 
 
 }

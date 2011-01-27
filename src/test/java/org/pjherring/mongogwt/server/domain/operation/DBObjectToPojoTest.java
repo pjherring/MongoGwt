@@ -288,7 +288,7 @@ public class DBObjectToPojoTest extends EasyMockSupport {
 
         DBObject dbObject = new BasicDBObject();
         dbObject.put("data", "somedata");
-        dbObjectToPojo.translate(dbObject, SimpleEntity.class);
+        dbObjectToPojo.translate(dbObject, SimpleEntity.class, true);
 
         verifyAll();
 
@@ -303,7 +303,7 @@ public class DBObjectToPojoTest extends EasyMockSupport {
         DBObject dbObject = new BasicDBObject();
         dbObject.put("data", dataStr);
 
-        SimpleEntity translated = dbObjectToPojo.translate(dbObject, SimpleEntity.class);
+        SimpleEntity translated = dbObjectToPojo.translate(dbObject, SimpleEntity.class, true);
         assertEquals(dataStr, translated.getData());
         assertNull(translated.getId());
         assertNull(translated.getCreatedDatetime());
@@ -321,7 +321,7 @@ public class DBObjectToPojoTest extends EasyMockSupport {
 
         ObjectId objectId = (ObjectId) simpleDb.get("_id");
 
-        SimpleEntity constructed = dbObjectToPojo.translate(simpleDb, SimpleEntity.class);
+        SimpleEntity constructed = dbObjectToPojo.translate(simpleDb, SimpleEntity.class, true);
 
         assertEquals(simple.getData(), constructed.getData());
         assertEquals(objectId.toString(), constructed.getId());
@@ -358,7 +358,7 @@ public class DBObjectToPojoTest extends EasyMockSupport {
         DBObject entityTranslated = pojoToDBObject.translate(entity);
 
         EntityOneToMany constructed =
-            dbObjectToPojo.translate(entityTranslated, EntityOneToMany.class);
+            dbObjectToPojo.translate(entityTranslated, EntityOneToMany.class, true);
 
         assertEquals(simpleOne.getId(), constructed.getSimpleEntityList().get(0).getId());
         assertEquals(simpleTwo.getId(), constructed.getSimpleEntityList().get(1).getId());
@@ -370,6 +370,50 @@ public class DBObjectToPojoTest extends EasyMockSupport {
                 throw new AssertionError("The set does not have either of the entities");
             }
         }
+    }
+
+    @Test
+    public void test_EntityWithOneToManyRef_DoNotFanOut() {
+        SimpleEntity simpleTwo = new SimpleEntity();
+        simpleTwo.setData("data");
+
+        DBObject simpleTranslateTwo = pojoToDBObject.translate(simpleTwo);
+        mongoDb
+            .getCollection("simple")
+            .insert(simpleTranslateTwo);
+        ObjectId simpleIdTwo = (ObjectId) simpleTranslateTwo.get("_id");
+        simpleTwo.setId(simpleIdTwo.toString());
+        simpleTwo.setCreatedDatetime(new Date(simpleIdTwo.getTime()));
+
+        SimpleEntity simpleOne = new SimpleEntity();
+        simpleOne.setData("data");
+        DBObject simpleTranslate = pojoToDBObject.translate(simpleOne);
+        mongoDb
+            .getCollection("simple")
+            .insert(simpleTranslate);
+        ObjectId simpleId = (ObjectId) simpleTranslate.get("_id");
+        simpleOne.setId(simpleId.toString());
+        simpleOne.setCreatedDatetime(new Date(simpleId.getTime()));
+
+        EntityOneToMany entity = new EntityOneToMany();
+        entity.setSimpleEntityList(Arrays.asList(new SimpleEntity[]{simpleOne, simpleTwo}));
+        entity.setSimpleEntitySet(new HashSet<SimpleEntity>(entity.getSimpleEntityList()));
+
+        DBObject entityTranslated = pojoToDBObject.translate(entity);
+
+        EntityOneToMany constructed =
+            dbObjectToPojo.translate(entityTranslated, EntityOneToMany.class, false);
+
+        assertEquals(2, constructed.getSimpleEntitySet().size());
+
+        for (SimpleEntity simpleEntityFromSet : constructed.getSimpleEntitySet()) {
+            assertNull(simpleEntityFromSet.getData());
+            assertNotNull(simpleEntityFromSet.getId());
+            assertNotNull(simpleEntityFromSet.getCreatedDatetime());
+        }
+
+        assertEquals(simpleOne.getId(), constructed.getSimpleEntityList().get(0).getId());
+        assertEquals(simpleTwo.getId(), constructed.getSimpleEntityList().get(1).getId());
     }
 
     @Test
@@ -387,8 +431,29 @@ public class DBObjectToPojoTest extends EasyMockSupport {
         entity.setManyToOne(simple);
         DBObject entityDb = pojoToDBObject.translate(entity);
 
-        EntityManyToOne constructed = dbObjectToPojo.translate(entityDb, EntityManyToOne.class);
+        EntityManyToOne constructed = dbObjectToPojo.translate(entityDb, EntityManyToOne.class, true);
         assertEquals(simple.getId(), constructed.getManyToOne().getId());
+    }
+
+    @Test
+    public void test_entityWithManyToOneReference_doNotFanOut() {
+        String data = "someData";
+        SimpleEntity simple = new SimpleEntity();
+        simple.setData(data);
+        DBObject simpleDB = pojoToDBObject.translate(simple);
+        mongoDb.getCollection("simple").insert(simpleDB);
+        ObjectId simpleId = (ObjectId) simpleDB.get("_id");
+        simple.setId(simpleId.toString());
+        simple.setCreatedDatetime(new Date(simpleId.getTime()));
+
+        EntityManyToOne entity = new EntityManyToOne();
+        entity.setManyToOne(simple);
+        DBObject entityDb = pojoToDBObject.translate(entity);
+
+        EntityManyToOne constructed = dbObjectToPojo.translate(entityDb, EntityManyToOne.class, false);
+        assertEquals(simple.getId(), constructed.getManyToOne().getId());
+        assertNotNull(constructed.getManyToOne().getCreatedDatetime());
+        assertNull(constructed.getManyToOne().getData());
     }
 
     @Test
@@ -398,7 +463,7 @@ public class DBObjectToPojoTest extends EasyMockSupport {
         WithEmbedded entity = new WithEmbedded();
         entity.setEmbed(embedded);
         DBObject dbObject = pojoToDBObject.translate(entity);
-        WithEmbedded constructed = dbObjectToPojo.translate(dbObject, WithEmbedded.class);
+        WithEmbedded constructed = dbObjectToPojo.translate(dbObject, WithEmbedded.class, true);
         assertEquals("data", constructed.getEmbed().getData());
     }
 
@@ -411,7 +476,7 @@ public class DBObjectToPojoTest extends EasyMockSupport {
 
         DBObject entityAsDB = pojoToDBObject.translate(entity);
         EntityWithCollections constructed
-            = dbObjectToPojo.translate(entityAsDB, EntityWithCollections.class);
+            = dbObjectToPojo.translate(entityAsDB, EntityWithCollections.class, true);
         assertEquals(entity.getStringSet(), constructed.getStringSet());
         assertArrayEquals(entity.getDateArray(), constructed.getDateArray());
         assertEquals(entity.getIntegerList(), constructed.getIntegerList());
@@ -422,10 +487,10 @@ public class DBObjectToPojoTest extends EasyMockSupport {
         DBObject simpleDB = new BasicDBObject();
         simpleDB.put("data", "simple");
 
-        dbObjectToPojo.translate(simpleDB, SimpleEntity.class);
+        dbObjectToPojo.translate(simpleDB, SimpleEntity.class, true);
         assertEquals(1, dbObjectToPojo.getCacheMisses());
         assertEquals(0, dbObjectToPojo.getCacheHits());
-        dbObjectToPojo.translate(simpleDB, SimpleEntity.class);
+        dbObjectToPojo.translate(simpleDB, SimpleEntity.class, true);
         assertEquals(1, dbObjectToPojo.getCacheMisses());
         assertEquals(1, dbObjectToPojo.getCacheHits());
         

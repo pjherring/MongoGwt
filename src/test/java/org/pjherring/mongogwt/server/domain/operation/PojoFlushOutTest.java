@@ -235,7 +235,7 @@ public class PojoFlushOutTest extends EasyMockSupport {
         replay(mockMap);
 
         SimpleEntity entity = new SimpleEntity();
-        pojoFlushOutMock.flush(entity, SimpleEntity.class, true);
+        pojoFlushOutMock.flush(entity, true);
 
         verify(mockMap);
 
@@ -261,7 +261,7 @@ public class PojoFlushOutTest extends EasyMockSupport {
         replayAll();
 
         OtherSimple entity = new OtherSimple();
-        pojoFlushOutMock.flush(entity, OtherSimple.class, true);
+        pojoFlushOutMock.flush(entity, true);
 
         verifyAll();
 
@@ -285,7 +285,7 @@ public class PojoFlushOutTest extends EasyMockSupport {
         withSimpleRef.setSimple(simple);
         create.doCreate(withSimpleRef);
 
-        pojoFlushOut.flush(simple, SimpleEntity.class, true);
+        pojoFlushOut.flush(simple, true);
         assertNotNull(simple.getRefSet());
         assertEquals(1, simple.getRefSet().size());
         WithSimpleRef found = simple.getRefSet().iterator().next();
@@ -304,7 +304,7 @@ public class PojoFlushOutTest extends EasyMockSupport {
         otherEntity.setSimples(Arrays.asList(new OtherSimple[]{simple}));
         create.doCreate(otherEntity);
 
-        pojoFlushOut.flush(simple, OtherSimple.class, true);
+        pojoFlushOut.flush(simple, true);
         assertEquals(otherEntity.getId(), simple.getOther().getId());
     }
 
@@ -320,7 +320,7 @@ public class PojoFlushOutTest extends EasyMockSupport {
         withSimpleRef.setData("data");
         create.doCreate(withSimpleRef);
 
-        pojoFlushOut.flush(simple, SimpleEntity.class, false);
+        pojoFlushOut.flush(simple, false);
         assertNotNull(simple.getRefSet());
         assertEquals(1, simple.getRefSet().size());
         WithSimpleRef found = simple.getRefSet().iterator().next();
@@ -340,7 +340,7 @@ public class PojoFlushOutTest extends EasyMockSupport {
         otherEntity.setSimples(Arrays.asList(new OtherSimple[]{simple}));
         create.doCreate(otherEntity);
 
-        pojoFlushOut.flush(simple, OtherSimple.class, false);
+        pojoFlushOut.flush(simple, false);
         assertEquals(otherEntity.getId(), simple.getOther().getId());
         assertNull(simple.getOther().getData());
     }

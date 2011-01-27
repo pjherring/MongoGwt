@@ -5,22 +5,26 @@
 
 package org.pjherring.mongogwt.server.domain.operation;
 
-import org.pjherring.mongogwt.shared.query.Query;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.mongodb.DB;
-import org.pjherring.mongogwt.server.guice.DataAccessTestModule;
-import org.pjherring.mongogwt.server.guice.DatabaseTestModule;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.pjherring.mongogwt.server.guice.DataAccessTestModule;
+import org.pjherring.mongogwt.server.guice.DatabaseModule;
+import org.pjherring.mongogwt.shared.BaseDomainObject;
+import org.pjherring.mongogwt.shared.IsEntity;
+import org.pjherring.mongogwt.shared.annotations.Column;
 import org.pjherring.mongogwt.shared.annotations.Entity;
-import org.pjherring.mongogwt.shared.domain.DomainOne;
-import org.pjherring.mongogwt.shared.domain.DomainTwo;
-import org.pjherring.mongogwt.shared.domain.DomainUnique;
-import org.pjherring.mongogwt.shared.domain.operation.Database;
+import org.pjherring.mongogwt.shared.annotations.Reference;
+import org.pjherring.mongogwt.shared.annotations.enums.ReferenceType;
+import org.pjherring.mongogwt.shared.domain.operation.Create;
 import static org.junit.Assert.*;
 
 /**
@@ -29,14 +33,94 @@ import static org.junit.Assert.*;
  */
 public class UpdateTest {
 
-    private final static Injector injector =
-        Guice.createInjector(new DatabaseTestModule(), new DataAccessTestModule());
-    private Database database;
+    private static final Injector injector
+        = Guice.createInjector(
+        new DataAccessTestModule(),
+        new DatabaseTestModule()
+    );
+
     private DB mongoDb;
+    private Update update;
+    private Read read;
+    private Create create;
+
+    public static class DatabaseTestModule extends DatabaseModule {
+
+        @Override
+        protected String getHostName() {
+            return "localhost";
+        }
+
+        @Override
+        protected String getDatabaseName() {
+            return UpdateTest.class.getSimpleName();
+        }
+
+        @Override
+        protected List<Class<? extends IsEntity>> getEntityList() {
+            List<Class<? extends IsEntity>> entityList
+                = new ArrayList<Class<? extends IsEntity>>();
+
+            entityList.add(SimpleEntity.class);
+            entityList.add(WithSimpleRef.class);
+
+            return entityList;
+        }
+
+    }
+
+    @Entity(name="simple")
+    public static class SimpleEntity extends BaseDomainObject {
+
+        private String data;
+        private int intData;
+        private Set<WithSimpleRef> refSet;
+
+        @Column(name="data")
+        public String getData() {
+            return data;
+        }
+
+        public void setData(String data) {
+            this.data = data;
+        }
+
+        @Column(name="intData")
+        public int getIntData() {
+            return intData;
+        }
+
+        public void setIntData(int intData) {
+            this.intData = intData;
+        }
+
+        @Reference(type=ReferenceType.ONE_TO_MANY, managedBy="simple")
+        public Set<WithSimpleRef> getRefSet() {
+            return refSet;
+        }
+
+        public void setRefSet(Set<WithSimpleRef> refSet) {
+            this.refSet = refSet;
+        }
+    }
+
+    @Entity(name="withSimleReference")
+    public static class WithSimpleRef extends BaseDomainObject {
+        private SimpleEntity simple;
+
+        @Column(name="simple")
+        @Reference(type=ReferenceType.MANY_TO_ONE)
+        public SimpleEntity getSimple() {
+            return simple;
+        }
+
+        public void setSimple(SimpleEntity simple) {
+            this.simple = simple;
+        }
+    }
+
 
     public UpdateTest() {
-        database = injector.getInstance(Database.class);
-        mongoDb = injector.getInstance(DB.class);
     }
 
     @BeforeClass
@@ -49,9 +133,10 @@ public class UpdateTest {
 
     @Before
     public void setUp() {
-        mongoDb.getCollection(DomainTwo.class.getAnnotation(Entity.class).name()).drop();
-        mongoDb.getCollection(DomainOne.class.getAnnotation(Entity.class).name()).drop();
-        mongoDb.getCollection(DomainUnique.class.getAnnotation(Entity.class).name()).drop();
+        mongoDb = injector.getInstance(DB.class);
+        update = injector.getInstance(Update.class);
+        create = injector.getInstance(Create.class);
+        read = injector.getInstance(Read.class);
     }
 
     @After
@@ -59,57 +144,20 @@ public class UpdateTest {
     }
 
     @Test
-    public void testUpdate() {
-        String newString = "newstring12";
-        String oldString = "oldstring12";
-        //create
-        DomainTwo domain = SaveTest.createDomainTwo();
-        domain.setStringData(oldString);
+    public void testUpdate_NoReferences() {
+        SimpleEntity entity = new SimpleEntity();
+        entity.setData("data");
+        entity.setIntData(5);
 
-        assertNull(domain.getId());
-        database.create(domain);
-        assertNotNull(domain.getId());
+        create.doCreate(entity);
 
-        //find
-        DomainTwo found = database.findOne(
-            new Query().start("_id").is(domain.getId()),
-            DomainTwo.class,
-            true
-        );
-        assertEquals(oldString, found.getStringData());
-        found.setStringData(newString);
-        //update
-        database.update(found);
+        entity.setData("new Data");
+        update.doUpdate(entity);
 
-        //find again
-        DomainTwo foundAgain = database.findOne(
-            new Query().start("_id").is(domain.getId()),
-            DomainTwo.class,
-            true
-        );
-        assertEquals(newString, foundAgain.getStringData());
-    }
+        SimpleEntity found = read.findById(entity.getId(), SimpleEntity.class, true);
 
-    @Test
-    public void testUpdateWithUnique() {
-        String oldString = "some unique string";
-        String newString = "some new string";
-        DomainUnique unique = new DomainUnique();
-        unique.setUniqueString(oldString);
-
-        database.create(unique);
-
-        Query findQuery = new Query().start("_id").is(unique.getId());
-
-        DomainUnique found = database.findOne(findQuery, DomainUnique.class, true);
-
-        assertEquals(oldString, found.getUniqueString());
-
-        found.setUniqueString(newString);
-        database.update(found);
-
-        DomainUnique foundAgain = database.findOne(findQuery, DomainUnique.class, true);
-        assertEquals(newString, foundAgain.getUniqueString());
+        assertEquals(entity.getId(), found.getId());
+        assertNotSame(entity.getData(), found.getData());
     }
 
 }

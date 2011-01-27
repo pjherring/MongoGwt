@@ -16,7 +16,7 @@ import org.pjherring.mongogwt.shared.IsStorable;
 @ImplementedBy(DBObjectToPojoImpl.class)
 public interface DBObjectToPojo {
 
-    <T extends IsStorable> T translate(DBObject dbObject, Class<T> type);
+    <T extends IsStorable> T translate(DBObject dbObject, Class<T> type, boolean doFanOut);
     long getCacheHits();
     long getCacheMisses();
     void resetCache();

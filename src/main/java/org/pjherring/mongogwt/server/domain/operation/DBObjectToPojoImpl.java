@@ -9,6 +9,7 @@ package org.pjherring.mongogwt.server.domain.operation;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.mongodb.BasicDBList;
+import com.mongodb.BasicDBObject;
 import com.mongodb.DBObject;
 import com.mongodb.DBRef;
 import java.lang.reflect.Method;
@@ -65,16 +66,16 @@ public class DBObjectToPojoImpl implements DBObjectToPojo {
      *
      * @return The Entity pojo.
      */
-    public <T extends IsStorable> T translate(DBObject dbObject, Class<T> type) {
+    public <T extends IsStorable> T translate(DBObject dbObject, Class<T> type, boolean doFanOut) {
         if (cacheMap.containsKey(type)) {
             cacheHits++;
-            return translateWithCache(dbObject, type, cacheMap.get(type));
+            return translateWithCache(dbObject, type, doFanOut, cacheMap.get(type));
         } else {
             cacheMisses++;
             cacheMap.put(type, createEntityTranslationMap(dbObject, type));
             //do this to maintain correct count since we are using recursion
             cacheHits--;
-            return translate(dbObject, type);
+            return translate(dbObject, type, doFanOut);
         }
     }
 
@@ -91,6 +92,7 @@ public class DBObjectToPojoImpl implements DBObjectToPojo {
     protected <T extends IsStorable, Q extends IsEntity, S> T translateWithCache(
         DBObject dbObject,
         Class<T> type,
+        boolean doFanOut,
         Map<String, Method> entityTranslationMap) {
 
 
@@ -109,12 +111,12 @@ public class DBObjectToPojoImpl implements DBObjectToPojo {
             if (value != null) {
                 //ONE TO MANY REFERENCE
                 if (value instanceof BasicDBList) {
-                    value = getOneToManyReference((BasicDBList) value, setter);
+                    value = getOneToManyReference((BasicDBList) value, setter, doFanOut);
                 } else if (value.getClass().equals(DBRef.class)) /*many to one reference */ {
-                    value = getManyToOneReference((DBRef) value);
+                    value = getPojoFromReference((DBRef) value, doFanOut);
                 } else if (value instanceof DBObject) { /* embedded object */
                     DBObject embeddedObject = (DBObject) value;
-                    value = translate(embeddedObject, (Class<T>) Arrays.asList(setter.getParameterTypes()).get(0));
+                    value = translate(embeddedObject, (Class<T>) Arrays.asList(setter.getParameterTypes()).get(0), doFanOut);
                 } else if (value.getClass().isArray()) { /* collection of a basic type (String, int, Integer, etc...) */
                     Class collectionClass = Arrays.asList(setter.getParameterTypes()).get(0);
                     //if collection class is an array don't do any manipulation
@@ -171,23 +173,23 @@ public class DBObjectToPojoImpl implements DBObjectToPojo {
      * @param setter The method of the Entity we are trying to build used
      *      as a setter.
      */
-    private <Q extends IsEntity> Collection<Q> getOneToManyReference(BasicDBList refs, Method setter) {
+    private Collection<IsEntity> getOneToManyReference(
+        BasicDBList refs,
+        Method setter,
+        boolean doFanOut) {
 
         if (refs.size() > 0) {
-            Class<Q> entityType = (Class<Q>) getEntityFromDBRef((DBRef) refs.get(0));
-
-            List<Q> referencedEntities = new ArrayList<Q>();
+            List<IsEntity> referencedEntities = new ArrayList<IsEntity>();
 
             for (Object ref : refs) {
-                DBObject refAsObject = ((DBRef) ref).fetch();
-                referencedEntities.add(translate(refAsObject, entityType));
+                referencedEntities.add(getPojoFromReference((DBRef) ref, doFanOut));
             }
 
             Class<? extends Collection> collectionType
                 = (Class<? extends Collection>) Arrays.asList(setter.getParameterTypes()).get(0);
 
             if (Set.class.isAssignableFrom(collectionType)) {
-                return new HashSet<Q>(referencedEntities);
+                return new HashSet(referencedEntities);
             } else {
                 return referencedEntities;
             }
@@ -202,10 +204,25 @@ public class DBObjectToPojoImpl implements DBObjectToPojo {
      * @param ref The DBRef to use to fetch the pojo.
      * @return The entity that represents the DBRef's referenced DBObject
      */
-    private <Q extends IsEntity> IsEntity getManyToOneReference(DBRef ref) {
-        Class<Q> entityType = (Class<Q>) getEntityFromDBRef(ref);
+    private <Q extends IsEntity> IsEntity getPojoFromReference(DBRef ref, boolean doFanOut) {
+        Class<Q> entityType = (Class<Q>) getEntityClassFromDBRef(ref);
+
         DBObject refAsDBObject = ref.fetch();
-        return translate(refAsDBObject, entityType);
+
+        if (doFanOut) {
+            return translate(refAsDBObject, entityType, doFanOut);
+        } else {
+            try {
+                Q referencedEntity = entityType.newInstance();
+                ObjectId id = (ObjectId) refAsDBObject.get("_id");
+                referencedEntity.setId(id.toString());
+                referencedEntity.setCreatedDatetime(new Date(id.getTime()));
+
+                return referencedEntity;
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        }
     }
 
     /*
@@ -217,7 +234,7 @@ public class DBObjectToPojoImpl implements DBObjectToPojo {
      * @return The class of the Entity
      * @throws InvalidReference
      */
-    private Class<? extends IsEntity> getEntityFromDBRef(DBRef ref) {
+    private Class<? extends IsEntity> getEntityClassFromDBRef(DBRef ref) {
         for (Class<? extends IsEntity> clazz : entityList) {
             if (clazz.getAnnotation(Entity.class).name().equals(ref.getRef())) {
                 return (Class<? extends IsEntity>) clazz;
