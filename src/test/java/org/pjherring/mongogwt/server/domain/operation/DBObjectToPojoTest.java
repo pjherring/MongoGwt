@@ -104,6 +104,7 @@ public class DBObjectToPojoTest extends EasyMockSupport {
     @Entity(name="simple")
     public static class SimpleEntity extends BaseDomainObject {
         private String data;
+        private Set<WithSimpleReference> referenceSet;
 
         @Column(name="data")
         public String getData() {
@@ -112,6 +113,30 @@ public class DBObjectToPojoTest extends EasyMockSupport {
 
         public void setData(String data) {
             this.data = data;
+        }
+
+        @Reference(managedBy="simple", type=ReferenceType.ONE_TO_MANY)
+        public Set<WithSimpleReference> getReferenceSet() {
+            return referenceSet;
+        }
+
+        public void setReferenceSet(Set<WithSimpleReference> refereceSet) {
+            this.referenceSet = refereceSet;
+        }
+    }
+
+    @Entity(name="withReference")
+    public static class WithSimpleReference extends BaseDomainObject {
+        private SimpleEntity simple;
+
+        @Column(name="simple")
+        @Reference(type=ReferenceType.MANY_TO_ONE)
+        public SimpleEntity getSimple() {
+            return simple;
+        }
+
+        public void setSimple(SimpleEntity simple) {
+            this.simple = simple;
         }
     }
 

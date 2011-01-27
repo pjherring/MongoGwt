@@ -13,6 +13,7 @@ import java.util.Map;
 import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
+import com.mongodb.BasicDBList;
 import com.mongodb.DB;
 import com.mongodb.DBObject;
 import com.mongodb.DBRef;
@@ -355,10 +356,10 @@ public class PojoToDBObjectTest extends EasyMockSupport {
         DBObject dBObject = pojoToDBObject.translate(withReference);
 
         assertTrue(dBObject.containsField("set"));
-        assertEquals(DBRef[].class, dBObject.get("set").getClass());
-        DBRef[] refArray = (DBRef[]) dBObject.get("set");
-        assertEquals(1, refArray.length);
-        DBRef ref = refArray[0];
+        assertEquals(BasicDBList.class, dBObject.get("set").getClass());
+        BasicDBList refList = (BasicDBList) dBObject.get("set");
+        assertEquals(1, refList.size());
+        DBRef ref = (DBRef) refList.get(0);
         DBObject objFromRef = ref.fetch();
         assertEquals(basicEntity.getId(), ((ObjectId) ref.getId()).toString());
     }

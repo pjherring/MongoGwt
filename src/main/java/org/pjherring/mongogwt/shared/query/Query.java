@@ -30,7 +30,7 @@ public class Query implements IsSerializable {
      * The sort map will hold a column name and -1 or 1 depending on the
      * sort desired.
      */
-    protected Map<String, Object> sortMap = new HashMap<String, Object>();
+    protected Map<String, Integer> sortMap = new HashMap<String, Integer>();
     /*
      * Holds the keys of the regexp columns.
      * @link org.pjherring.mongogwt.server.domain.operation.Read will use these
@@ -275,7 +275,7 @@ public class Query implements IsSerializable {
      * @param sort : DESC OR ASC
      */
     public Query addSort(String key, Sort sort) {
-        sortMap.put(key, sort.equals(Sort.DESC) ? "-1" : " 1");
+        sortMap.put(key, sort.equals(Sort.DESC) ? -1 : 1);
         return this;
     }
 
@@ -331,7 +331,7 @@ public class Query implements IsSerializable {
     /*
      * Get a sort map.
      */
-    public Map<String, Object> getSortMap() {
+    public Map<String, Integer> getSortMap() {
         return sortMap;
     }
 }

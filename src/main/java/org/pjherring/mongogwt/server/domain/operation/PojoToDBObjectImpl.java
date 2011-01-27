@@ -8,6 +8,7 @@ package org.pjherring.mongogwt.server.domain.operation;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+import com.mongodb.BasicDBList;
 import com.mongodb.BasicDBObject;
 import com.mongodb.DB;
 import com.mongodb.DBObject;
@@ -225,13 +226,14 @@ public class PojoToDBObjectImpl implements PojoToDBObject {
                 = (Iterable<? extends IsEntity>) value;
 
             List<DBRef> dbReferences = new ArrayList<DBRef>();
+            BasicDBList list = new BasicDBList();
 
             for (IsEntity referenceEntity : valueAsIterable) {
                 if (referenceEntity.getId() == null) {
                     throw new InvalidReference("Can not reference an unpersisted entity.");
                 }
 
-                dbReferences.add(
+                list.add(
                     new DBRef(
                         mongoDb,
                         referenceEntity.getClass().getAnnotation(Entity.class).name(),
@@ -240,7 +242,7 @@ public class PojoToDBObjectImpl implements PojoToDBObject {
                 );
             }
 
-            value = dbReferences.toArray(new DBRef[dbReferences.size()]);
+            value = list;
         }
 
         return value;

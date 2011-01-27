@@ -8,6 +8,7 @@ package org.pjherring.mongogwt.server.domain.operation;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+import com.mongodb.BasicDBList;
 import com.mongodb.DBObject;
 import com.mongodb.DBRef;
 import java.lang.reflect.Method;
@@ -92,6 +93,7 @@ public class DBObjectToPojoImpl implements DBObjectToPojo {
         Class<T> type,
         Map<String, Method> entityTranslationMap) {
 
+
         T pojoToBuild;
         try {
             pojoToBuild = type.newInstance();
@@ -106,8 +108,8 @@ public class DBObjectToPojoImpl implements DBObjectToPojo {
 
             if (value != null) {
                 //ONE TO MANY REFERENCE
-                if (value.getClass().equals(DBRef[].class)) {
-                    value = getOneToManyReference((DBRef[]) value, setter);
+                if (value instanceof BasicDBList) {
+                    value = getOneToManyReference((BasicDBList) value, setter);
                 } else if (value.getClass().equals(DBRef.class)) /*many to one reference */ {
                     value = getManyToOneReference((DBRef) value);
                 } else if (value instanceof DBObject) { /* embedded object */
@@ -169,15 +171,15 @@ public class DBObjectToPojoImpl implements DBObjectToPojo {
      * @param setter The method of the Entity we are trying to build used
      *      as a setter.
      */
-    private <Q extends IsEntity> Collection<Q> getOneToManyReference(DBRef[] refs, Method setter) {
+    private <Q extends IsEntity> Collection<Q> getOneToManyReference(BasicDBList refs, Method setter) {
 
-        if (refs.length > 0) {
-            Class<Q> entityType = (Class<Q>) getEntityFromDBRef(refs[0]);
+        if (refs.size() > 0) {
+            Class<Q> entityType = (Class<Q>) getEntityFromDBRef((DBRef) refs.get(0));
 
             List<Q> referencedEntities = new ArrayList<Q>();
 
-            for (DBRef ref : refs) {
-                DBObject refAsObject = ref.fetch();
+            for (Object ref : refs) {
+                DBObject refAsObject = ((DBRef) ref).fetch();
                 referencedEntities.add(translate(refAsObject, entityType));
             }
 

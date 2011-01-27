@@ -193,7 +193,7 @@ public class QueryTest extends EasyMockSupport {
         Query query = new Query()
             .start("key").is("value")
             .addSort("key", Query.Sort.DESC);
-        Map<String, Object> sortMap = query.getSortMap();
+        Map<String, Integer> sortMap = query.getSortMap();
         assertEquals("-1", sortMap.get("key"));
     }
 }

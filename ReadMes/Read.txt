@@ -1,0 +1,10 @@
+The Read class should be able to find, findOne, and findById. It should be able
+to fan out the Entities, meaning include their referenced objects fully loaded,
+or it should be able to no fan out, meaning just include the id's of their
+reference objects. Also, it should not hold attributes that have a getter with a
+Column annotation, but any References that are managed by other Entities.
+
+1. Find, findOne, findById
+2. Do fanOut full referenced entities
+3. don't fan out, referenced entities with id's only
+4. Set attributes annotated with Column and Reference
