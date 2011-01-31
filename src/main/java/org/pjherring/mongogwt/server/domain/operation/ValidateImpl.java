@@ -6,6 +6,7 @@
 package org.pjherring.mongogwt.server.domain.operation;
 
 
+import org.pjherring.mongogwt.shared.domain.operation.Validate;
 import com.google.inject.Inject;
 import com.mongodb.BasicDBObject;
 import com.mongodb.DB;
@@ -126,20 +127,28 @@ public class ValidateImpl implements Validate {
 
             doNullableValidation(column, value, doThrowExceptions);
 
-            if (getter.isAnnotationPresent(Embedded.class) && IsEmbeddable.class.isAssignableFrom(value.getClass())) {
-                validate((IsStorable) value, doThrowExceptions);
-            }
-
-            doLengthValidation(column, value, doThrowExceptions);
-            doRegexValidation(column, value, doThrowExceptions);
-            doColumnUniqueValidation(column, isStorable.getClass(), value, doThrowExceptions);
-
             /*
-             * If uniqueColumnList is not null and this column is part of the
-             * unique constraint, put the value in the query object.
+             * If value is null we do not need to do any additional validation
+             * checks. If we are at this point a null value is acceptable because
+             * the null value passed the @see doNullableValidation.
              */
-            if (uniqueColumnList != null && uniqueColumnList.contains(column.name())) {
-                uniqueQuery.put(column.name(), value);
+            if (value != null) {
+
+                if (getter.isAnnotationPresent(Embedded.class) && IsEmbeddable.class.isAssignableFrom(value.getClass())) {
+                    validate((IsStorable) value, doThrowExceptions);
+                }
+
+                doLengthValidation(column, value, doThrowExceptions);
+                doRegexValidation(column, value, doThrowExceptions);
+                doColumnUniqueValidation(column, isStorable.getClass(), value, doThrowExceptions);
+
+                /*
+                 * If uniqueColumnList is not null and this column is part of the
+                 * unique constraint, put the value in the query object.
+                 */
+                if (uniqueColumnList != null && uniqueColumnList.contains(column.name())) {
+                    uniqueQuery.put(column.name(), value);
+                }
             }
         }
 

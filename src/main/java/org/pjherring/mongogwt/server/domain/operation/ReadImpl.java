@@ -6,6 +6,7 @@
 package org.pjherring.mongogwt.server.domain.operation;
 
 
+import org.pjherring.mongogwt.shared.domain.operation.Read;
 import com.google.inject.Inject;
 import com.mongodb.BasicDBObject;
 import com.mongodb.BasicDBObjectBuilder;
@@ -126,7 +127,8 @@ public class ReadImpl implements Read {
         );
 
         if (cursor.size() > 0) {
-            return translator.translate(cursor.next(), clazz, doFanOut);
+            DBObject dbObject = cursor.next();
+            return translator.translate(dbObject, clazz, doFanOut);
         }
 
         throw new NotFoundException("No results!");

@@ -93,7 +93,6 @@ public class DBObjectToPojoTest extends EasyMockSupport {
     public void setUp() {
         pojoToDBObject = injector.getInstance(PojoToDBObject.class);
         dbObjectToPojo = injector.getInstance(DBObjectToPojo.class);
-        dbObjectToPojo.resetCache();
         mongoDb = injector.getInstance(DB.class);
     }
 
@@ -105,6 +104,7 @@ public class DBObjectToPojoTest extends EasyMockSupport {
     public static class SimpleEntity extends BaseDomainObject {
         private String data;
         private Set<WithSimpleReference> referenceSet;
+        private List<String> words;
 
         @Column(name="data")
         public String getData() {
@@ -123,6 +123,16 @@ public class DBObjectToPojoTest extends EasyMockSupport {
         public void setReferenceSet(Set<WithSimpleReference> refereceSet) {
             this.referenceSet = refereceSet;
         }
+
+        @Column(name="words")
+        public List<String> getWords() {
+            return words;
+        }
+
+        public void setWords(List<String> words) {
+            this.words = words;
+        }
+
     }
 
     @Entity(name="withReference")
@@ -199,7 +209,7 @@ public class DBObjectToPojoTest extends EasyMockSupport {
 
         private Set<String> stringSet;
         private List<Integer> integerList;
-        private Date[] dateArray;
+        private List<Date> dateArray;
 
         @Column(name="stringSet")
         public Set<String> getStringSet() {
@@ -220,11 +230,11 @@ public class DBObjectToPojoTest extends EasyMockSupport {
         }
 
         @Column(name="dateArray")
-        public Date[] getDateArray() {
+        public List<Date> getDateArray() {
             return dateArray;
         }
 
-        public void setDateArray(Date[] dateArray) {
+        public void setDateArray(List<Date> dateArray) {
             this.dateArray = dateArray;
         }
     }
@@ -244,57 +254,6 @@ public class DBObjectToPojoTest extends EasyMockSupport {
             this.embed = embed;
         }
 
-    }
-
-    public static class DBObjectToPojoWithMock extends DBObjectToPojoImpl {
-
-        @Inject
-        public DBObjectToPojoWithMock(@DatabaseModule.EntityList List<Class<? extends IsEntity>> enttiyList) {
-            super(enttiyList);
-        }
-
-        public void setMap(Map map) {
-            cacheMap = map;
-        }
-    }
-
-    @Test
-    public void test_simpleEntityTranslationCreation() {
-        //we set the cache map to be our mock map
-        Map mockMap = createMock(Map.class);
-        dbObjectToPojo = injector.getInstance(DBObjectToPojoWithMock.class);
-        ((DBObjectToPojoWithMock) dbObjectToPojo).setMap(mockMap);
-
-
-        expect(mockMap.containsKey(SimpleEntity.class)).andReturn(false);
-
-        Capture<Map> mapCapture = new Capture<Map>();
-        expect(mockMap.put(eq(SimpleEntity.class), capture(mapCapture))).andReturn(null);
-
-        expect(mockMap.containsKey(SimpleEntity.class)).andReturn(true);
-
-
-        /*
-         * This will be our entityTranslationMap, we do this to avoid testing
-         * the actual building of the pojo.
-         */
-        Map entityTranslationMapMock = createMock(Map.class);
-        expect(mockMap.get(SimpleEntity.class)).andReturn(entityTranslationMapMock);
-
-        //return an empty Set so we don't build anything
-        expect(entityTranslationMapMock.keySet()).andReturn(new HashSet());
-        
-        replayAll();
-
-        DBObject dbObject = new BasicDBObject();
-        dbObject.put("data", "somedata");
-        dbObjectToPojo.translate(dbObject, SimpleEntity.class, true);
-
-        verifyAll();
-
-        Map<String, Method> entityTranslationMap = mapCapture.getValue();
-        assertEquals(1, entityTranslationMap.keySet().size());
-        assertEquals("setData", entityTranslationMap.get("data").getName());
     }
 
     @Test
@@ -472,27 +431,23 @@ public class DBObjectToPojoTest extends EasyMockSupport {
         EntityWithCollections entity = new EntityWithCollections();
         entity.setStringSet(new HashSet(Arrays.asList(new String[]{"one", "two", "three"})));
         entity.setIntegerList(Arrays.asList(new Integer[]{1, 2, 3}));
-        entity.setDateArray(new Date[]{new Date(23532532), new Date(232432423), new Date(91293123)});
+        entity.setDateArray(Arrays.asList(new Date[]{new Date(23532532), new Date(232432423), new Date(91293123)}));
 
         DBObject entityAsDB = pojoToDBObject.translate(entity);
         EntityWithCollections constructed
             = dbObjectToPojo.translate(entityAsDB, EntityWithCollections.class, true);
         assertEquals(entity.getStringSet(), constructed.getStringSet());
-        assertArrayEquals(entity.getDateArray(), constructed.getDateArray());
+        assertEquals(entity.getDateArray(), constructed.getDateArray());
         assertEquals(entity.getIntegerList(), constructed.getIntegerList());
     }
 
     @Test
-    public void test_cacheStats() {
-        DBObject simpleDB = new BasicDBObject();
-        simpleDB.put("data", "simple");
+    public void test_simpleArray() {
+        SimpleEntity simple = new SimpleEntity();
+        simple.setWords(Arrays.asList(new String[]{"one", "two", "three"}));
 
-        dbObjectToPojo.translate(simpleDB, SimpleEntity.class, true);
-        assertEquals(1, dbObjectToPojo.getCacheMisses());
-        assertEquals(0, dbObjectToPojo.getCacheHits());
-        dbObjectToPojo.translate(simpleDB, SimpleEntity.class, true);
-        assertEquals(1, dbObjectToPojo.getCacheMisses());
-        assertEquals(1, dbObjectToPojo.getCacheHits());
-        
+        DBObject simpleDB = pojoToDBObject.translate(simple);
+        SimpleEntity translated = dbObjectToPojo.translate(simpleDB, SimpleEntity.class, true);
+        assertEquals(simple.getWords(), translated.getWords());
     }
 }

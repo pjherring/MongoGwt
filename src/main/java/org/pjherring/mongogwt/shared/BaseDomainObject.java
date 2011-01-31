@@ -11,7 +11,7 @@ import java.util.Date;
  *
  * @author pjherring
  */
-public class BaseDomainObject implements IsEntity {
+public abstract class BaseDomainObject implements IsEntity {
 
     protected String id;
     protected Date createdDatetime;

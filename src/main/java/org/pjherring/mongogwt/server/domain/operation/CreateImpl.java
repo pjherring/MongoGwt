@@ -6,6 +6,7 @@
 package org.pjherring.mongogwt.server.domain.operation;
 
 
+import org.pjherring.mongogwt.shared.domain.operation.Validate;
 import com.google.inject.Inject;
 import com.mongodb.DB;
 import com.mongodb.DBObject;

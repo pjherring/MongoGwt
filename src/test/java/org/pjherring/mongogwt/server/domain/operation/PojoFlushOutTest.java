@@ -9,10 +9,6 @@ import org.pjherring.mongogwt.shared.domain.operation.Create;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import org.pjherring.mongogwt.server.guice.DataAccessTestModule;
-import com.mongodb.DB;
-import java.util.Map;
-import org.easymock.Capture;
-import com.google.inject.Inject;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -30,7 +26,6 @@ import org.pjherring.mongogwt.shared.annotations.Column;
 import org.pjherring.mongogwt.shared.annotations.Entity;
 import org.pjherring.mongogwt.shared.annotations.Reference;
 import org.pjherring.mongogwt.shared.annotations.enums.ReferenceType;
-import static org.easymock.EasyMock.*;
 import static org.junit.Assert.*;
 
 /**
@@ -188,19 +183,6 @@ public class PojoFlushOutTest extends EasyMockSupport {
         }
     }
 
-    public static class PojoFlushOutMock extends PojoFlushOut {
-
-        @Inject
-        public PojoFlushOutMock(DB mongoDb, DBObjectToPojo translate) {
-            super(mongoDb, translate);
-        }
-
-        public void setMap(Map map) {
-            this.entityCacheMap = map;
-        }
-    }
-
-
     @BeforeClass
     public static void setUpClass() throws Exception {
     }
@@ -213,65 +195,10 @@ public class PojoFlushOutTest extends EasyMockSupport {
     public void setUp() {
         create = injector.getInstance(Create.class);
         pojoFlushOut = injector.getInstance(PojoFlushOut.class);
-        pojoFlushOut.clearCache();
     }
 
     @After
     public void tearDown() {
-    }
-
-    @Test
-    public void testConstructingOfEntityReferenceMap() {
-        PojoFlushOutMock pojoFlushOutMock = injector.getInstance(PojoFlushOutMock.class);
-        Map mockMap = createMock(Map.class);
-        pojoFlushOutMock.setMap(mockMap);
-
-        Capture<List> entityReferenceListCapture = new Capture<List>();
-        expect(mockMap.containsKey(eq(SimpleEntity.class))).andReturn(false);
-        expect(mockMap.containsKey(eq(SimpleEntity.class))).andReturn(true);
-        expect(mockMap.get(eq(SimpleEntity.class))).andReturn(new ArrayList<PojoFlushOut.ReferenceData>());
-        expect(mockMap.put(eq(SimpleEntity.class), capture(entityReferenceListCapture))).andReturn(null);
-
-        replay(mockMap);
-
-        SimpleEntity entity = new SimpleEntity();
-        pojoFlushOutMock.flush(entity, true);
-
-        verify(mockMap);
-
-        List<PojoFlushOut.ReferenceData> referenceList = entityReferenceListCapture.getValue();
-        assertEquals(1, referenceList.size());
-        PojoFlushOut.ReferenceData data = referenceList.get(0);
-        assertEquals(WithSimpleRef.class, data.getReferencedClass());
-        assertEquals("simple", data.getReference().managedBy());
-    }
-
-    @Test
-    public void testConstructionOfEntityReferenceMap_ManyToOne() {
-        PojoFlushOutMock pojoFlushOutMock = injector.getInstance(PojoFlushOutMock.class);
-        Map mockMap = createMock(Map.class);
-        pojoFlushOutMock.setMap(mockMap);
-
-        Capture<List> entityReferenceListCapture = new Capture<List>();
-        expect(mockMap.containsKey(eq(OtherSimple.class))).andReturn(false);
-        expect(mockMap.containsKey(eq(OtherSimple.class))).andReturn(true);
-        expect(mockMap.get(eq(OtherSimple.class))).andReturn(new ArrayList<PojoFlushOut.ReferenceData>());
-        expect(mockMap.put(eq(OtherSimple.class), capture(entityReferenceListCapture))).andReturn(null);
-
-        replayAll();
-
-        OtherSimple entity = new OtherSimple();
-        pojoFlushOutMock.flush(entity, true);
-
-        verifyAll();
-
-        List<PojoFlushOut.ReferenceData> referenceList
-            = entityReferenceListCapture.getValue();
-        assertEquals(1, referenceList.size());
-        PojoFlushOut.ReferenceData data = referenceList.get(0);
-        assertEquals(OtherEntity.class, data.getReferencedClass());
-        assertEquals("simples", data.getReference().managedBy());
-        assertEquals(ReferenceType.MANY_TO_ONE, data.getReference().type());
     }
 
     @Test

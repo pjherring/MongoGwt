@@ -5,6 +5,7 @@
 
 package org.pjherring.mongogwt.server.domain.operation;
 
+import org.pjherring.mongogwt.shared.domain.operation.Read;
 import java.util.Set;
 import org.pjherring.mongogwt.shared.domain.operation.Create;
 import com.google.inject.Guice;
@@ -21,8 +22,10 @@ import org.junit.Test;
 import org.pjherring.mongogwt.server.guice.DataAccessTestModule;
 import org.pjherring.mongogwt.server.guice.DatabaseModule;
 import org.pjherring.mongogwt.shared.BaseDomainObject;
+import org.pjherring.mongogwt.shared.IsEmbeddable;
 import org.pjherring.mongogwt.shared.IsEntity;
 import org.pjherring.mongogwt.shared.annotations.Column;
+import org.pjherring.mongogwt.shared.annotations.Embedded;
 import org.pjherring.mongogwt.shared.annotations.Entity;
 import org.pjherring.mongogwt.shared.annotations.Reference;
 import org.pjherring.mongogwt.shared.annotations.enums.ReferenceType;
@@ -81,6 +84,7 @@ public class ReadTest extends EasyMockSupport {
         private String data;
         private int intData;
         private Set<WithSimpleRef> refSet;
+        private EmbeddedEntity embeddedEntity;
 
         @Column(name="data")
         public String getData() {
@@ -108,6 +112,16 @@ public class ReadTest extends EasyMockSupport {
         public void setRefSet(Set<WithSimpleRef> refSet) {
             this.refSet = refSet;
         }
+
+        @Embedded
+        @Column(name="embed")
+        public EmbeddedEntity getEmbeddedEntity() {
+            return embeddedEntity;
+        }
+
+        public void setEmbeddedEntity(EmbeddedEntity embeddedEntity) {
+            this.embeddedEntity = embeddedEntity;
+        }
     }
 
     @Entity(name="withSimleReference")
@@ -122,6 +136,19 @@ public class ReadTest extends EasyMockSupport {
 
         public void setSimple(SimpleEntity simple) {
             this.simple = simple;
+        }
+    }
+
+    public static class EmbeddedEntity implements IsEmbeddable {
+        private String data;
+
+        @Column(name="data")
+        public String getData() {
+            return data;
+        }
+
+        public void setData(String data) {
+            this.data = data;
         }
     }
 
@@ -328,6 +355,20 @@ public class ReadTest extends EasyMockSupport {
         assertNull(foundWithRef.getSimple().getData());
     }
 
+    @Test
+    public void testRead_WithEmbed() {
+        SimpleEntity simple = new SimpleEntity();
+        simple.setData("new Data");
+        simple.setEmbeddedEntity(new EmbeddedEntity());
+        simple.getEmbeddedEntity().setData("embedData");
+
+        create.doCreate(simple);
+
+        SimpleEntity found = read.findById(simple.getId(), SimpleEntity.class, true);
+        assertEquals(simple.getId(), found.getId());
+        assertNotNull(found.getEmbeddedEntity());
+        assertEquals("embedData", found.getEmbeddedEntity().getData());
+    }
 
 
 }

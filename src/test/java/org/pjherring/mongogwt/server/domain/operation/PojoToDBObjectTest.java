@@ -183,7 +183,7 @@ public class PojoToDBObjectTest extends EasyMockSupport {
     public static class EntityWithCollections extends BaseDomainObject {
         private Set<String> stringSet;
         private List<Integer> integerList;
-        private int[] intArray;
+        private Integer[] intArray;
 
         @Column(name="stringSet")
         public Set<String> getStringSet() {
@@ -204,32 +204,14 @@ public class PojoToDBObjectTest extends EasyMockSupport {
         }
 
         @Column(name="intArray")
-        public int[] getIntArray() {
+        public Integer[] getIntArray() {
             return intArray;
         }
 
-        public void setIntArray(int[] intArray) {
+        public void setIntArray(Integer[] intArray) {
             this.intArray = intArray;
         }
     }
-
-    /*
-     * This class is so we can use a mock map to test the behavior of creating
-     * the translationMap
-     */
-    public static class PojoToDBMockMap extends PojoToDBObjectImpl {
-
-        @Inject
-        public PojoToDBMockMap(DB mongoDb) {
-            super(mongoDb);
-        }
-
-        public void setMap(Map map) {
-            this.translationMap = map;
-        }
-
-    }
-
 
     public PojoToDBObjectTest() {
     }
@@ -245,7 +227,6 @@ public class PojoToDBObjectTest extends EasyMockSupport {
     @Before
     public void setUp() {
         pojoToDBObject = injector.getInstance(PojoToDBObject.class);
-        pojoToDBObject.resetCahce();
         mongoDb = injector.getInstance(DB.class);
     }
 
@@ -262,70 +243,6 @@ public class PojoToDBObjectTest extends EasyMockSupport {
         DBObject dbObject = pojoToDBObject.translate(basicEntity);
 
         assertEquals(data, dbObject.get("data"));
-    }
-
-    @Test
-    public void testEntityTranslationMapCreation()
-        throws NoSuchMethodException, SecurityException {
-
-        Map mockTranslationMap = createMock(Map.class);
-        Map entityTranslationMock = createMock(Map.class);
-        pojoToDBObject = injector.getInstance(PojoToDBMockMap.class);
-        ((PojoToDBMockMap) pojoToDBObject).setMap(mockTranslationMap);
-
-
-        Capture<Map> entityTranslationMapCapture = new Capture<Map>();
-        //expect us not to find the translation map for BasicEntity
-        expect(mockTranslationMap.containsKey(eq(BasicEntity.class))).andReturn(false);
-
-        //this will be called after construction the entityTranslationMap
-        expect(
-            mockTranslationMap.put(eq(BasicEntity.class),
-            capture(entityTranslationMapCapture))
-        ).andReturn(null);
-
-        //now we have the translation map
-        expect(mockTranslationMap.containsKey(eq(BasicEntity.class))).andReturn(true);
-        expect(mockTranslationMap.get(eq(BasicEntity.class))).andReturn(entityTranslationMock);
-        /*
-         * We are testing the construction of the entityTranslationMap not the
-         * actual construction of the DBOBject. Returning an empty Set will
-         * allow us to avoid going through the construction of the DBObject.
-         */
-        expect(entityTranslationMock.keySet()).andReturn(new HashSet());
-
-        replayAll();
-
-        BasicEntity basicEntity = new BasicEntity();
-        basicEntity.setData("data");
-
-        pojoToDBObject.translate(basicEntity);
-
-        verifyAll();
-
-        Map<String, Method> entityTranslationMap
-            = entityTranslationMapCapture.getValue();
-
-        assertEquals(1, entityTranslationMap.keySet().size());
-        assertTrue(entityTranslationMap.keySet().contains("data"));
-        assertEquals(BasicEntity.class.getMethod("getData"), entityTranslationMap.get("data"));
-
-    }
-
-    @Test
-    public void BasicEntityToDBObject_testTranslationCacheHitMisses() {
-        BasicEntity basicEntity = new BasicEntity();
-        basicEntity.setData("data");
-
-        pojoToDBObject.translate(basicEntity);
-
-        assertEquals(0, pojoToDBObject.getCacheHitCount());
-        assertEquals(1, pojoToDBObject.getCacheMissCount());
-
-        pojoToDBObject.translate(basicEntity);
-
-        assertEquals(1, pojoToDBObject.getCacheHitCount());
-        assertEquals(1, pojoToDBObject.getCacheMissCount());
     }
 
     @Test
@@ -479,29 +396,24 @@ public class PojoToDBObjectTest extends EasyMockSupport {
     }
 
     @Test
-    public void test_colletionOfBuiltInTypes() {
+    public void testCollectionOfBuiltInTypes() {
         EntityWithCollections entity = new EntityWithCollections();
-        entity.setIntArray(new int[]{1,2,3});
+        entity.setIntArray(new Integer[]{1,2,3});
         entity.setStringSet(new HashSet(Arrays.asList(new String[]{"one", "two", "three"})));
         entity.setIntegerList(Arrays.asList(new Integer[]{1,2,3}));
 
         DBObject constructed = pojoToDBObject.translate(entity);
-        assertEquals(Integer[].class, constructed.get("integerList").getClass());
-        assertEquals(int[].class, constructed.get("intArray").getClass());
-        assertEquals(String[].class, constructed.get("stringSet").getClass());
+        assertEquals(BasicDBList.class, constructed.get("integerList").getClass());
+        assertEquals(BasicDBList.class, constructed.get("intArray").getClass());
+        assertEquals(BasicDBList.class, constructed.get("stringSet").getClass());
 
-        List<String> stringSetAsList =  Arrays.asList((String[]) constructed.get("stringSet"));
-        LOG.info(stringSetAsList.get(0));
-        assertTrue(stringSetAsList.contains("one"));
-        assertTrue(stringSetAsList.contains("two"));
-        assertTrue(stringSetAsList.contains("three"));
+        BasicDBList stringSetList = (BasicDBList) constructed.get("stringSet");
+        assertTrue(stringSetList.contains("one"));
+        assertTrue(stringSetList.contains("two"));
+        assertTrue(stringSetList.contains("three"));
 
-        int[] intArray = (int[]) constructed.get("intArray");
-        assertEquals(entity.getIntArray(), intArray);
-        assertArrayEquals(
-            entity.getIntegerList().toArray(new Integer[entity.getIntegerList().size()]),
-            (Integer[]) constructed.get("integerList")
-        );
+        BasicDBList intListDB = (BasicDBList) constructed.get("intArray");
+        assertEquals(entity.getIntArray()[0], intListDB.get(0));
     }
 
     @Test

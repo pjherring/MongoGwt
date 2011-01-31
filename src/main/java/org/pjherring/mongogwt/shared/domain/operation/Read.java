@@ -3,10 +3,11 @@
  * and open the template in the editor.
  */
 
-package org.pjherring.mongogwt.server.domain.operation;
+package org.pjherring.mongogwt.shared.domain.operation;
 
 import com.google.inject.ImplementedBy;
 import java.util.List;
+import org.pjherring.mongogwt.server.domain.operation.ReadImpl;
 import org.pjherring.mongogwt.shared.IsEntity;
 import org.pjherring.mongogwt.shared.query.Query;
 

@@ -194,6 +194,6 @@ public class QueryTest extends EasyMockSupport {
             .start("key").is("value")
             .addSort("key", Query.Sort.DESC);
         Map<String, Integer> sortMap = query.getSortMap();
-        assertEquals("-1", sortMap.get("key"));
+        assertTrue(-1 == sortMap.get("key"));
     }
 }

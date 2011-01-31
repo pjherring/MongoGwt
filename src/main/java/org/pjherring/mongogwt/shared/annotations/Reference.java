@@ -21,5 +21,6 @@ public @interface Reference {
     ReferenceType type();
     String joinColumn() default "";
     String managedBy() default "";
+    boolean doCascadeDelete() default false;
 }
 
