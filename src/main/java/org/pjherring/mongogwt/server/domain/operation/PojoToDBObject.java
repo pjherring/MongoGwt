@@ -147,20 +147,7 @@ public class PojoToDBObject {
      * @return Either DBRef[] or DBRef
      */
     private Object getValueFromReference(Object value, Reference reference) {
-        if (reference.type().equals(ReferenceType.MANY_TO_ONE)) {
-            IsEntity valueAsEntity = (IsEntity) value;
-
-            if (valueAsEntity.getId() == null) {
-                throw new InvalidReference("Can not reference an unpersisted entity.");
-            }
-
-            value = new DBRef(
-                mongoDb,
-                valueAsEntity.getClass().getAnnotation(Entity.class).name(),
-                new ObjectId(valueAsEntity.getId())
-            );
-        } else {
-
+        if (reference.type().equals(ReferenceType.ONE_TO_MANY)) {
             Iterable<? extends IsEntity> valueAsIterable
                 = (Iterable<? extends IsEntity>) value;
 
@@ -181,6 +168,19 @@ public class PojoToDBObject {
             }
 
             value = list;
+        } else {
+            IsEntity valueAsEntity = (IsEntity) value;
+
+            if (valueAsEntity.getId() == null) {
+                throw new InvalidReference("Can not reference an unpersisted entity.");
+            }
+
+            value = new DBRef(
+                mongoDb,
+                valueAsEntity.getClass().getAnnotation(Entity.class).name(),
+                new ObjectId(valueAsEntity.getId())
+            );
+
         }
 
         return value;

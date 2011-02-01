@@ -11,6 +11,8 @@ import com.google.inject.Inject;
 import com.mongodb.DB;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.logging.Logger;
@@ -53,23 +55,42 @@ public class DeleteImpl implements Delete {
         this.util = util;
     }
 
+    /*
+     * Deletes the entity.
+     *
+     * @param The entity to delete.
+     */
     @Override
     public void delete(IsEntity entity) {
         entityDeleteQueue.clear();
         markForDeletion(entity);
-
-        for (String collectionName : entityDeleteQueue.keySet()) {
-            for (IsEntity entityToDelete : entityDeleteQueue.get(collectionName).values()) {
-                mongoDb.getCollection(collectionName)
-                    .remove(translator.translate(entityToDelete));
-            }
-        }
-
+        doDelete();
         entity.setId(null);
         entity.setCreatedDatetime(null);
     }
 
-    protected void doOneToManyMarkDeletion(IsEntity parent, ReferenceMeta referenceMeta) {
+    /*
+     * Deletes all entities found in the query.
+     *
+     * @param
+     */
+    @Override
+    public <T extends IsEntity> void delete(Query query, Class<T> clazz) {
+        List<T> results = read.find(query, clazz, false);
+
+        //clear our queue
+        entityDeleteQueue.clear();
+
+        for (T entity : results) {
+            markForDeletion(entity);
+        }
+
+        doDelete();
+    }
+
+    protected void doOneToManyMarkDeletion(
+        IsEntity parent,
+        ReferenceMeta referenceMeta) {
 
         Collection<IsEntity> collection = null;
 
@@ -81,12 +102,15 @@ public class DeleteImpl implements Delete {
             throw new RuntimeException(e);
         }
 
-        while (collection.iterator().hasNext()) {
-            markForDeletion(collection.iterator().next());
+        Set<IsEntity> setToDelete = new HashSet<IsEntity>(collection);
+        for (IsEntity entity : setToDelete) {
+            markForDeletion(entity);
         }
     }
 
-    protected void doManyToOneOneToOneMarkDeletion(IsEntity parent, ReferenceMeta referenceMeta) {
+    protected void doManyToOneOneToOneMarkDeletion(
+        IsEntity parent,
+        ReferenceMeta referenceMeta) {
         IsEntity referencedEntity = null;
 
         try {
@@ -97,43 +121,55 @@ public class DeleteImpl implements Delete {
             throw new RuntimeException(e);
         }
 
-        LOG.info("FOUND ONE TO MANY");
 
         markForDeletion(referencedEntity);
     }
 
     protected void markForDeletion(IsEntity entity) {
 
+        //we can't delete something that's not persisted
         if (entity.getId() == null) {
             throw new NotPersistedException();
         }
 
+        //have we already marked this entity for deletion
         if (!isMarkedForDeletion(entity)) {
-            Set<ReferenceMeta> referenceMetaSet = entityMetaCache.getReferenceMetaSet(entity.getClass());
-            LOG.info("SIZE for " + entity.getClass().getName() + " : " + referenceMetaSet.size());
 
-            for (ReferenceMeta referenceMeta : entityMetaCache.getReferenceMetaSet(entity.getClass())) {
+            Set<ReferenceMeta> referenceMetaSet
+                = entityMetaCache.getReferenceMetaSet(entity.getClass());
 
-                LOG.info("REFERENCES");
+            /*
+             * Iterate through all the entity's references and check if
+             * cascade delete is true. If so, mark those for deletion.
+             */
+            for (ReferenceMeta referenceMeta : referenceMetaSet) {
+
                 //if this is true then we have to go delete the references
                 if (referenceMeta.getReference().doCascadeDelete()) {
                     if (referenceMeta.getReference().type().equals(ReferenceType.ONE_TO_MANY)) {
-                        LOG.info("ONE TO MANY");
                         doOneToManyMarkDeletion(entity, referenceMeta);
                     } else {
-                        LOG.info("DOING ONE TO ONE OR MANY TO ONE");
                         doManyToOneOneToOneMarkDeletion(entity, referenceMeta);
                     }
                 }
             }
 
+            //this will actually "mark" the entity for deletion
             putInDeleteQueue(entity);
         }
 
     }
 
-    public void delete(Query query) {
-        throw new UnsupportedOperationException("Not supported yet.");
+    /*
+     * This method actually will delete the entities from the data store.
+     */
+    protected void doDelete() {
+        for (String collectionName : entityDeleteQueue.keySet()) {
+            for (IsEntity entityToDelete : entityDeleteQueue.get(collectionName).values()) {
+                mongoDb.getCollection(collectionName)
+                    .remove(translator.translate(entityToDelete));
+            }
+        }
     }
 
     protected boolean isMarkedForDeletion(IsEntity entity) {

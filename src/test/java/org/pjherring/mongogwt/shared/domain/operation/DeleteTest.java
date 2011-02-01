@@ -9,6 +9,7 @@ import com.mongodb.DB;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.logging.Logger;
@@ -30,6 +31,7 @@ import org.pjherring.mongogwt.shared.annotations.enums.ReferenceType;
 import org.pjherring.mongogwt.shared.exception.InvalidEntity;
 import org.pjherring.mongogwt.shared.exception.NotFoundException;
 import org.pjherring.mongogwt.shared.exception.NotPersistedException;
+import org.pjherring.mongogwt.shared.query.Query;
 import static org.junit.Assert.*;
 
 /**
@@ -143,6 +145,8 @@ public class DeleteTest {
     @Entity(name="withSimpleRefCascade")
     public static class WithSimpleRefCascade extends BaseDomainObject {
         private SimpleEntity simple;
+        private Set<SimpleEntity> simpleSet;
+        private SimpleEntity simpleOneToOne;
 
         @Column(name="simple")
         @Reference(type=ReferenceType.MANY_TO_ONE, doCascadeDelete=true)
@@ -152,6 +156,26 @@ public class DeleteTest {
 
         public void setSimple(SimpleEntity simple) {
             this.simple = simple;
+        }
+
+        @Column(name="simpleSet")
+        @Reference(type=ReferenceType.ONE_TO_MANY, doCascadeDelete=true)
+        public Set<SimpleEntity> getSimpleSet() {
+            return simpleSet;
+        }
+
+        public void setSimpleSet(Set<SimpleEntity> simpleSet) {
+            this.simpleSet = simpleSet;
+        }
+
+        @Column(name="simpleOneToOne")
+        @Reference(type=ReferenceType.ONE_TO_ONE, doCascadeDelete=true)
+        public SimpleEntity getSimpleOneToOne() {
+            return simpleOneToOne;
+        }
+
+        public void setSimpleOneToOne(SimpleEntity simpleOneToOne) {
+            this.simpleOneToOne = simpleOneToOne;
         }
     }
 
@@ -242,11 +266,27 @@ public class DeleteTest {
 
     @Test
     public void test_deleteWitHReference_Managed_Cascade() {
-        LOG.info("test_deleteWitHReference_Managed_Cascade");
-        SimpleEntity entity = new SimpleEntity();
-        create.doCreate(entity);
+        SimpleEntity manyToOneEntity = new SimpleEntity();
+        create.doCreate(manyToOneEntity);
+
+        SimpleEntity inSetEntity = new SimpleEntity();
+        SimpleEntity inSetEntityTwo = new SimpleEntity();
+        create.doCreate(inSetEntity);
+        create.doCreate(inSetEntityTwo);
+
+        SimpleEntity oneToOneEntity = new SimpleEntity();
+        create.doCreate(oneToOneEntity);
+
         WithSimpleRefCascade withRef = new WithSimpleRefCascade();
-        withRef.setSimple(entity);
+
+        withRef.setSimple(manyToOneEntity);
+        Set<SimpleEntity> simpleSet = new HashSet<SimpleEntity>();
+        simpleSet.add(inSetEntity);
+        simpleSet.add(inSetEntityTwo);
+        withRef.setSimpleSet(simpleSet);
+
+        withRef.setSimpleOneToOne(oneToOneEntity);
+
         create.doCreate(withRef);
         String id = withRef.getId();
 
@@ -255,13 +295,41 @@ public class DeleteTest {
         Exception exception = null;
 
         try {
-            read.findById(entity.getId(), SimpleEntity.class, true);
+            read.findById(manyToOneEntity.getId(), SimpleEntity.class, true);
+        } catch (Exception e) {
+            exception = e;
+        }
+        assertNotNull(exception);
+        assertTrue(exception instanceof NotFoundException);
+        exception = null;
+
+        try {
+            read.findById(inSetEntity.getId(), SimpleEntity.class, true);
+        } catch (Exception e) {
+            exception = e;
+        }
+        assertNotNull(exception);
+        assertTrue(exception instanceof NotFoundException);
+        exception = null;
+
+        try {
+            read.findById(inSetEntityTwo.getId(), SimpleEntity.class, true);
+        } catch (Exception e) {
+            exception = e;
+        }
+        assertNotNull(exception);
+        assertTrue(exception instanceof NotFoundException);
+        exception = null;
+
+        try {
+            read.findById(oneToOneEntity.getId(), SimpleEntity.class, true);
         } catch (Exception e) {
             exception = e;
         }
 
         assertNotNull(exception);
         assertTrue(exception instanceof NotFoundException);
+        exception = null;
 
         try {
             read.findById(id, WithSimpleRefCascade.class, true);
@@ -271,6 +339,28 @@ public class DeleteTest {
 
         assertNotNull(exception);
         assertTrue(exception instanceof NotFoundException);
+        exception = null;
+    }
+
+    @Test(expected=NotFoundException.class)
+    public void test_delete_with_query() {
+        String data = "Data";
+        SimpleEntity simple = new SimpleEntity();
+        simple.setData(data);
+
+        create.doCreate(simple);
+
+        SimpleEntity simpleTwo = new SimpleEntity();
+        simpleTwo.setData(data);
+        create.doCreate(simpleTwo);
+
+        Query query = new Query()
+            .start("data").is(data);
+
+        delete.delete(query, SimpleEntity.class);
+
+        read.find(query, SimpleEntity.class, true);
+
     }
 
 }

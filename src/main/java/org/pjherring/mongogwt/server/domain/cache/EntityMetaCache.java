@@ -210,7 +210,6 @@ public class EntityMetaCache {
                         throw new RuntimeException(e);
                     }
 
-                    LOG.info("HERE");
                     referenceMetaSet.add(referenceMeta);
                 }
             }

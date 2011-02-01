@@ -94,6 +94,17 @@ public class DBObjectToPojoTest extends EasyMockSupport {
         pojoToDBObject = injector.getInstance(PojoToDBObject.class);
         dbObjectToPojo = injector.getInstance(DBObjectToPojo.class);
         mongoDb = injector.getInstance(DB.class);
+
+        mongoDb.getCollection(SimpleEntity.class.getAnnotation(Entity.class).name())
+            .drop();
+        mongoDb.getCollection(WithSimpleReference.class.getAnnotation(Entity.class).name())
+            .drop();
+        mongoDb.getCollection(EntityOneToMany.class.getAnnotation(Entity.class).name())
+            .drop();
+        mongoDb.getCollection(EntityManyToOne.class.getAnnotation(Entity.class).name())
+            .drop();
+        mongoDb.getCollection(WithEmbedded.class.getAnnotation(Entity.class).name())
+            .drop();
     }
 
     @After

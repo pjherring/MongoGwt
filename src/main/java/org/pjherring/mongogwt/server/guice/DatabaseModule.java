@@ -28,7 +28,8 @@ import org.pjherring.mongogwt.shared.IsEntity;
  */
 public abstract class DatabaseModule extends AbstractModule {
 
-    private static final Logger LOG = Logger.getLogger("Guice DatabaseModule");
+    private static final Logger LOG
+        = Logger.getLogger(DatabaseModule.class.getName());
 
     protected TypeLiteral entityListTypeLiteral = new TypeLiteral<List<Class<? extends IsEntity>>>(){;};
 

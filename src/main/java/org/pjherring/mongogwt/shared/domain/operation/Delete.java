@@ -18,5 +18,5 @@ import org.pjherring.mongogwt.shared.query.Query;
 public interface Delete {
 
     void delete(IsEntity entity);
-    void delete(Query query);
+    <T extends IsEntity> void delete(Query query, Class<T> clazz);
 }

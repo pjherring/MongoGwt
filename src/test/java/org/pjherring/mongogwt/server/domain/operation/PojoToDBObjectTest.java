@@ -8,10 +8,7 @@ package org.pjherring.mongogwt.server.domain.operation;
 import java.util.logging.Logger;
 import org.bson.types.ObjectId;
 import java.util.Set;
-import java.lang.reflect.Method;
-import java.util.Map;
 import com.google.inject.Guice;
-import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.mongodb.BasicDBList;
 import com.mongodb.DB;
@@ -22,7 +19,6 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
-import org.easymock.Capture;
 import org.easymock.EasyMockSupport;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -42,7 +38,6 @@ import org.pjherring.mongogwt.shared.annotations.Reference;
 import org.pjherring.mongogwt.shared.annotations.enums.ReferenceType;
 import org.pjherring.mongogwt.shared.exception.InvalidReference;
 import static org.junit.Assert.*;
-import static org.easymock.EasyMock.*;
 
 /**
  *
