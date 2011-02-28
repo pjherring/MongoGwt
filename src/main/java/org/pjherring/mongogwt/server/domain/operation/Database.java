@@ -10,7 +10,6 @@ import com.google.inject.Inject;
 import java.util.List;
 import java.util.logging.Logger;
 import org.bson.types.ObjectId;
-import org.pjherring.mongogwt.client.rpc.DatabaseService;
 import org.pjherring.mongogwt.server.domain.hook.DataAccessHookRunner;
 import org.pjherring.mongogwt.shared.IsEntity;
 import org.pjherring.mongogwt.shared.domain.hook.DataAccessHook.What;
@@ -19,6 +18,7 @@ import org.pjherring.mongogwt.shared.domain.operation.Create;
 import org.pjherring.mongogwt.shared.domain.operation.Delete;
 import org.pjherring.mongogwt.shared.domain.operation.Read;
 import org.pjherring.mongogwt.shared.domain.operation.Update;
+import org.pjherring.mongogwt.shared.domain.operation.Validate;
 import org.pjherring.mongogwt.shared.exception.NotFoundException;
 import org.pjherring.mongogwt.shared.exception.NotPersistedException;
 import org.pjherring.mongogwt.shared.exception.ValidationException;
@@ -55,6 +55,7 @@ public class Database {
     }
 
     public IsEntity create(IsEntity domainObject) throws ValidationException {
+
         dataAccessHookRunner.runDataAccessHooks(domainObject, domainObject.getClass(), When.PRE, What.CREATE);
         create.doCreate(domainObject);
         dataAccessHookRunner.runDataAccessHooks(domainObject, domainObject.getClass(), When.POST, What.CREATE);

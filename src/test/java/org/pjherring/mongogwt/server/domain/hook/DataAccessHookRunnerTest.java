@@ -5,6 +5,7 @@
 
 package org.pjherring.mongogwt.server.domain.hook;
 
+import org.pjherring.mongogwt.shared.domain.operation.Validate;
 import org.pjherring.mongogwt.shared.domain.hook.DataAccessHook;
 import java.util.Map;
 import java.util.Arrays;
@@ -18,6 +19,7 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.pjherring.mongogwt.shared.BaseDomainObject;
+import org.pjherring.mongogwt.shared.IsStorable;
 import org.pjherring.mongogwt.shared.annotations.Entity;
 import org.pjherring.mongogwt.shared.query.Query;
 import static org.easymock.EasyMock.*;
@@ -30,6 +32,7 @@ public class DataAccessHookRunnerTest extends EasyMockSupport {
 
     private final static Logger LOG = Logger.getLogger(DataAccessHookRunnerTest.class.getName());
     private DataAccessHookRunner runner;
+    private Validate validate;
 
     public DataAccessHookRunnerTest() {
     }
@@ -44,7 +47,8 @@ public class DataAccessHookRunnerTest extends EasyMockSupport {
 
     @Before
     public void setUp() {
-        runner = new DataAccessHookRunner();
+        validate = createMock(Validate.class);
+        runner = new DataAccessHookRunner(validate);
     }
 
     @After
@@ -110,6 +114,9 @@ public class DataAccessHookRunnerTest extends EasyMockSupport {
 
     @Test
     public void testEntityHook() {
+        validate.validate(isA(IsStorable.class));
+        expectLastCall().atLeastOnce();
+
         String data = "data";
         SimpleEntity entity = createMock(SimpleEntity.class);
         expect(entity.getData()).andReturn(data);
@@ -133,6 +140,7 @@ public class DataAccessHookRunnerTest extends EasyMockSupport {
 
     @Test
     public void testQueryHook() {
+
         Query query = createMock(Query.class);
         Map mockMap = createMock(Map.class);
 
@@ -149,6 +157,9 @@ public class DataAccessHookRunnerTest extends EasyMockSupport {
 
     @Test
     public void testCollectionOfEntityHook_PreCreate() {
+        validate.validate(isA(IsStorable.class));
+        expectLastCall().atLeastOnce();
+
         String data = "String";
         SimpleEntity simpleMockOne = createMock(SimpleEntity.class);
         SimpleEntity simpleMockTwo = createMock(SimpleEntity.class);

@@ -15,6 +15,7 @@ import java.util.logging.Logger;
 import org.pjherring.mongogwt.shared.domain.hook.DataAccessHook.Hooks;
 import org.pjherring.mongogwt.shared.IsEntity;
 import org.pjherring.mongogwt.shared.domain.hook.DataAccessHook;
+import org.pjherring.mongogwt.shared.domain.operation.Validate;
 import org.pjherring.mongogwt.shared.query.Query;
 
 /**
@@ -28,6 +29,12 @@ public class DataAccessHookRunner {
     private final static Logger LOG = Logger.getLogger(DataAccessHookRunner.class.getName());
     private final Injector injector = Guice.createInjector();
 
+    protected Validate validate;
+
+    public DataAccessHookRunner(Validate validate) {
+        this.validate = validate;
+    }
+
     /*
      * @param entity The entity to use while running the hooks.
      * @param clazz The class of the entity.
@@ -39,6 +46,8 @@ public class DataAccessHookRunner {
         Class<? extends IsEntity> clazz,
         DataAccessHook.When when,
         DataAccessHook.What what) {
+
+        validate.validate(entity);
 
 
         if (clazz.isAnnotationPresent(Hooks.class)) {
@@ -133,6 +142,7 @@ public class DataAccessHookRunner {
                     List<T> entityList = new ArrayList<T>(collection);
 
                     for (T entity : entityList) {
+                        validate.validate(entity);
                         baseDataHook.setDomainObject(entity);
                         if (baseDataHook.doRun()) {
                             baseDataHook.run();
