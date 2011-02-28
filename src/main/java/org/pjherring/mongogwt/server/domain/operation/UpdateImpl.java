@@ -5,6 +5,8 @@
 
 package org.pjherring.mongogwt.server.domain.operation;
 
+import org.pjherring.mongogwt.server.domain.translate.DBObjectToPojo;
+import org.pjherring.mongogwt.server.domain.translate.PojoToDBObject;
 import org.pjherring.mongogwt.shared.domain.operation.Validate;
 import org.pjherring.mongogwt.shared.domain.operation.Read;
 import org.pjherring.mongogwt.shared.domain.operation.Update;

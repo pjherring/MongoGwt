@@ -3,7 +3,7 @@
  * and open the template in the editor.
  */
 
-package org.pjherring.mongogwt.shared.domain.operation;
+package org.pjherring.mongogwt.server.domain.operation;
 
 import com.mongodb.DB;
 import com.google.inject.Guice;
@@ -19,7 +19,6 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.pjherring.mongogwt.server.domain.operation.DBObjectToPojoTest.EmbeddedEntity;
-import org.pjherring.mongogwt.server.guice.DataAccessTestModule;
 import org.pjherring.mongogwt.server.guice.DatabaseModule;
 import org.pjherring.mongogwt.shared.BaseDomainObject;
 import org.pjherring.mongogwt.shared.IsEntity;
@@ -28,6 +27,9 @@ import org.pjherring.mongogwt.shared.annotations.Embedded;
 import org.pjherring.mongogwt.shared.annotations.Entity;
 import org.pjherring.mongogwt.shared.annotations.Reference;
 import org.pjherring.mongogwt.shared.annotations.enums.ReferenceType;
+import org.pjherring.mongogwt.shared.domain.operation.Create;
+import org.pjherring.mongogwt.shared.domain.operation.Delete;
+import org.pjherring.mongogwt.shared.domain.operation.Read;
 import org.pjherring.mongogwt.shared.exception.InvalidEntity;
 import org.pjherring.mongogwt.shared.exception.NotFoundException;
 import org.pjherring.mongogwt.shared.exception.NotPersistedException;
@@ -43,7 +45,6 @@ public class DeleteTest {
     private final static Logger LOG = Logger.getLogger(DeleteTest.class.getName());
     private static final Injector injector
         = Guice.createInjector(
-        new DataAccessTestModule(),
         new DatabaseTestModule()
     );
 

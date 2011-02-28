@@ -19,7 +19,6 @@ import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.pjherring.mongogwt.server.guice.DataAccessTestModule;
 import org.pjherring.mongogwt.server.guice.DatabaseModule;
 import org.pjherring.mongogwt.shared.BaseDomainObject;
 import org.pjherring.mongogwt.shared.IsEmbeddable;
@@ -41,7 +40,6 @@ public class ReadTest extends EasyMockSupport {
 
     private static final Injector injector
         = Guice.createInjector(
-        new DataAccessTestModule(),
         new DatabaseTestModule()
     );
 

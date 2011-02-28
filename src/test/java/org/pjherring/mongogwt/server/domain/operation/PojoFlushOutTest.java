@@ -5,10 +5,10 @@
 
 package org.pjherring.mongogwt.server.domain.operation;
 
+import org.pjherring.mongogwt.server.domain.translate.PojoFlushOut;
 import org.pjherring.mongogwt.shared.domain.operation.Create;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
-import org.pjherring.mongogwt.server.guice.DataAccessTestModule;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -36,7 +36,6 @@ public class PojoFlushOutTest extends EasyMockSupport {
 
     private static final Injector injector
         = Guice.createInjector(
-        new DataAccessTestModule(),
         new DatabaseTestModule()
     );
 

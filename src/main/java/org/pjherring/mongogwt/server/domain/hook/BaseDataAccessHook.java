@@ -5,8 +5,8 @@
 
 package org.pjherring.mongogwt.server.domain.hook;
 
-import org.pjherring.mongogwt.shared.query.Query;
 import org.pjherring.mongogwt.shared.IsEntity;
+import org.pjherring.mongogwt.shared.query.Query;
 
 /**
  *
@@ -23,7 +23,19 @@ public abstract class BaseDataAccessHook<T extends IsEntity> {
         this.domainObject = domainObject;
     }
 
+    protected T getDomainObject() {
+        return domainObject;
+    }
+
     public void setQuery(Query query) {
         this.query = query;
+    }
+
+    protected Query getQuery() {
+        return query;
+    }
+
+    public boolean doRun() {
+        return true;
     }
 }

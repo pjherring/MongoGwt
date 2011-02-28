@@ -18,7 +18,6 @@ import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.pjherring.mongogwt.server.guice.DataAccessTestModule;
 import org.pjherring.mongogwt.server.guice.DatabaseModule;
 import org.pjherring.mongogwt.shared.BaseDomainObject;
 import org.pjherring.mongogwt.shared.IsEmbeddable;
@@ -38,7 +37,7 @@ import static org.junit.Assert.*;
 public class CreateTest {
 
     private static final Injector injector =
-        Guice.createInjector(new DatabaseTestModule(), new DataAccessTestModule());
+        Guice.createInjector(new DatabaseTestModule());
     private DB mongoDb;
     private Create create;
 

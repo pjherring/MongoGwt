@@ -5,6 +5,7 @@
 
 package org.pjherring.mongogwt.server.domain.operation;
 
+import org.pjherring.mongogwt.server.domain.translate.PojoToDBObject;
 import org.pjherring.mongogwt.shared.domain.operation.Validate;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
@@ -19,7 +20,6 @@ import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.pjherring.mongogwt.server.guice.DataAccessTestModule;
 import org.pjherring.mongogwt.server.guice.DatabaseModule;
 import org.pjherring.mongogwt.shared.BaseDomainObject;
 import org.pjherring.mongogwt.shared.IsEmbeddable;
@@ -42,7 +42,7 @@ import static org.junit.Assert.*;
 public class ValidateTest {
 
     private static final Injector injector =
-        Guice.createInjector(new DatabaseTestModule(), new DataAccessTestModule());
+        Guice.createInjector(new DatabaseTestModule());
     private Validate validate;
     private DB mongoDb;
     private PojoToDBObject translatePojoToDb;
@@ -233,14 +233,10 @@ public class ValidateTest {
 
         assertEquals(NullableException.class, validationErrorMap.get("data").get(0).getClass());
 
-        entity.setData("dat");
+        entity.setData("d33");
         validate.validate(entity, false);
         validationErrorMap = validate.getValidationErrorMap();
-
-        for (ValidationException exception : validationErrorMap.get("data")) {
-            assertTrue(exception.getClass().getName(), exception.getClass().equals(LengthException.class)
-                || exception.getClass().equals(RegexpException.class));
-        }
+        assertEquals(LengthException.class, validationErrorMap.get("data").get(0).getClass());
 
         entity.setData("datata");
         validate.validate(entity, false);

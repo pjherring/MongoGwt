@@ -5,6 +5,7 @@
 
 package org.pjherring.mongogwt.server.domain.operation;
 
+import org.pjherring.mongogwt.server.domain.translate.PojoToDBObject;
 import java.util.logging.Logger;
 import org.bson.types.ObjectId;
 import java.util.Set;
@@ -25,7 +26,6 @@ import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.pjherring.mongogwt.server.guice.DataAccessTestModule;
 import org.pjherring.mongogwt.server.guice.DatabaseModule;
 import org.pjherring.mongogwt.shared.BaseDomainObject;
 import org.pjherring.mongogwt.shared.IsEmbeddable;
@@ -46,7 +46,7 @@ import static org.junit.Assert.*;
 public class PojoToDBObjectTest extends EasyMockSupport {
 
     private static final Injector injector =
-        Guice.createInjector(new DatabaseTestModule(), new DataAccessTestModule());
+        Guice.createInjector(new DatabaseTestModule());
     private final static Logger LOG = Logger.getLogger(PojoToDBObjectTest.class.getSimpleName());
     private PojoToDBObject pojoToDBObject;
     private DB mongoDb;

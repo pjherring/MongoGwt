@@ -19,7 +19,6 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import java.net.UnknownHostException;
 import java.util.List;
-import java.util.logging.Logger;
 import org.pjherring.mongogwt.shared.IsEntity;
 
 /**
@@ -27,9 +26,6 @@ import org.pjherring.mongogwt.shared.IsEntity;
  * @author pjherring
  */
 public abstract class DatabaseModule extends AbstractModule {
-
-    private static final Logger LOG
-        = Logger.getLogger(DatabaseModule.class.getName());
 
     protected TypeLiteral entityListTypeLiteral = new TypeLiteral<List<Class<? extends IsEntity>>>(){;};
 

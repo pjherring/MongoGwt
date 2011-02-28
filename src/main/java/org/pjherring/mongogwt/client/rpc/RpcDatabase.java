@@ -7,6 +7,7 @@ package org.pjherring.mongogwt.client.rpc;
 
 
 import com.google.gwt.user.client.rpc.AsyncCallback;
+import com.google.inject.ImplementedBy;
 import java.util.List;
 import org.pjherring.mongogwt.shared.IsEntity;
 import org.pjherring.mongogwt.shared.query.Query;
@@ -15,6 +16,7 @@ import org.pjherring.mongogwt.shared.query.Query;
  *
  * @author pjherring
  */
+@ImplementedBy(RpcDatabaseImpl.class)
 public interface RpcDatabase {
 
     public <T extends IsEntity> void create(

@@ -10,9 +10,11 @@ import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import java.util.List;
 import org.pjherring.mongogwt.client.rpc.DatabaseService;
+import org.pjherring.mongogwt.server.domain.operation.Database;
 import org.pjherring.mongogwt.shared.IsEntity;
-import org.pjherring.mongogwt.shared.domain.operation.Database;
 import org.pjherring.mongogwt.shared.exception.NotFoundException;
+import org.pjherring.mongogwt.shared.exception.NotPersistedException;
+import org.pjherring.mongogwt.shared.exception.ValidationException;
 import org.pjherring.mongogwt.shared.query.Query;
 
 /**
@@ -26,48 +28,51 @@ public class DatabaseServiceImpl extends RemoteServiceServlet implements Databas
     protected Database database;
 
     @Inject
-    public DatabaseServiceImpl(Database database) {
+    public DatabaseServiceImpl(
+        Database database
+        ) {
         this.database = database;
     }
 
-    public IsEntity create(IsEntity domainObject) {
-        database.create(domainObject);
-        return domainObject;
+    @Override
+    public IsEntity create(IsEntity domainObject) throws ValidationException {
+        return database.create(domainObject);
     }
 
-    public List<IsEntity> find(Query query, String type, boolean doFanOut) {
-        Class typeAsClass = getClassFromString(type);
-
-        List<IsEntity> results = database.find(query, typeAsClass, doFanOut);
-        return results;
+    @Override
+    public List<IsEntity> find(Query query, String type, boolean doFanOut) throws NotFoundException {
+        return database.find(query, getClassFromString(type), doFanOut);
     }
 
-    public IsEntity findOne(Query query, String type, boolean doFanOut) {
-        Class typeAsClass = getClassFromString(type);
-        return database.findOne(query, typeAsClass, doFanOut);
+    @Override
+    public IsEntity findOne(Query query, String type, boolean doFanOut) throws NotFoundException {
+        return database.findOne(query, getClassFromString(type), doFanOut);
     }
 
-    public IsEntity update(IsEntity domainObject) {
-        database.update(domainObject);
-        return domainObject;
+    @Override
+    public IsEntity findById(String id, String type, boolean doFanOut) throws NotFoundException {
+        return database.findById(id, getClassFromString(type), doFanOut);
     }
 
-    public void delete(Query query, String type) {
+    @Override
+    public IsEntity update(IsEntity domainObject) throws ValidationException {
+        return database.update(domainObject);
+    }
+
+    @Override
+    public void delete(Query query, String type) throws NotFoundException, NotPersistedException {
         database.delete(query, getClassFromString(type));
     }
 
-    public void delete(IsEntity domainObject) {
+    @Override
+    public void delete(IsEntity domainObject) throws NotPersistedException {
         database.delete(domainObject);
     }
 
-    public IsEntity refresh(IsEntity domainObject, String type) throws NotFoundException {
-        return database.refresh(domainObject, getClassFromString(type));
+    @Override
+    public IsEntity refresh(IsEntity domainObject, String type) throws NotFoundException, NotPersistedException {
+        return database.findById(domainObject.getId(), getClassFromString(type), true);
     }
-
-    public Long count(Query query, String type) {
-        return database.count(query, getClassFromString(type));
-    }
-
 
     protected Class getClassFromString(String className) {
         try {

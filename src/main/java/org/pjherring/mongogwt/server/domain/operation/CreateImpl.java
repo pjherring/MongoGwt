@@ -6,6 +6,7 @@
 package org.pjherring.mongogwt.server.domain.operation;
 
 
+import org.pjherring.mongogwt.server.domain.translate.PojoToDBObject;
 import org.pjherring.mongogwt.shared.domain.operation.Validate;
 import com.google.inject.Inject;
 import com.mongodb.DB;
@@ -54,6 +55,7 @@ public class CreateImpl implements Create {
      *
      * @param entityToPersist The entity to persist.
      */
+    @Override
     public void doCreate(IsEntity entityToPersist) {
 
         //this will throw exceptions

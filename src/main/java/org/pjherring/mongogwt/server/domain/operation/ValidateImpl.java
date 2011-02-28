@@ -18,8 +18,11 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
+import org.pjherring.mongogwt.server.domain.cache.EntityMetaCache;
+import org.pjherring.mongogwt.server.domain.cache.EntityMetaCache.ColumnMeta;
 import org.pjherring.mongogwt.shared.IsEmbeddable;
 import org.pjherring.mongogwt.shared.IsStorable;
 import org.pjherring.mongogwt.shared.annotations.Column;
@@ -42,80 +45,38 @@ public class ValidateImpl implements Validate {
     protected Map<Class<? extends IsStorable>, Map<Column, Method>> translationMap ;
     protected Map<String, List<ValidationException>> validationErrorMap;
     protected DB mongoDB;
+    protected EntityMetaCache entityMetaCache;
 
     @Inject
-    public ValidateImpl(DB mongoDB) {
+    public ValidateImpl(DB mongoDB, EntityMetaCache entityMetaCache) {
         translationMap = new HashMap<Class<? extends IsStorable>, Map<Column, Method>>();
         validationErrorMap = new HashMap<String, List<ValidationException>>();
+
         this.mongoDB = mongoDB;
+        this.entityMetaCache = entityMetaCache;
     }
 
+    @Override
     public void validate(IsStorable isStorable, boolean doThrowExceptions) {
 
-        if (translationMap.containsKey(isStorable.getClass())) {
-            //reset the validation error map to pick up exceptions from the
-            //latest validation
-            validationErrorMap.clear();
-            doValidationWithMap(isStorable, translationMap.get(isStorable.getClass()), doThrowExceptions);
-        } else {
-            translationMap.put(isStorable.getClass(), createTranslationMap(isStorable));
-            validate(isStorable, doThrowExceptions);
-        }
-    }
+        validationErrorMap.clear();
 
-    public void validate(IsStorable isStorable) throws ValidationException {
-        validate(isStorable, true);
-    }
-
-    public Map<String, List<ValidationException>> getValidationErrorMap() {
-        return validationErrorMap;
-    }
-
-    /*
-     * TODO: REFACTOR
-     *
-     * This method was tested in PojoToDBObject. There should be some refactoring
-     * to make forming this map a seperate class. So it is only in one place.
-     */
-    private <T extends IsStorable> Map<Column, Method> createTranslationMap(T isStorable) {
-        Map<Column, Method> entityTranslationMap =
-            new HashMap<Column, Method>();
-
-        for (Method method : isStorable.getClass().getMethods()) {
-            /*
-             * We want this method if its a getter meaning no parameters
-             * and annotated with column.
-             */
-            if (method.isAnnotationPresent(Column.class) && method.getParameterTypes().length == 0) {
-                Column column = method.getAnnotation(Column.class);
-                entityTranslationMap.put(column, method);
-            }
-        }
-
-        return entityTranslationMap;
-    }
-
-    private void doValidationWithMap(
-        IsStorable isStorable,
-        Map<Column, Method> columnNameGetterMap,
-        boolean doThrowExceptions) {
         List<String> uniqueColumnList = null;
         DBObject uniqueQuery = null;
+        boolean doUniqueAnnotationValidation =
+            isStorable.getClass().isAnnotationPresent(Unique.class);
 
-        /*
-         * If there is a unique annotation on this Entity we need to construct
-         * a DBObject query so we can see if this Entity violates a Unique
-         * Constraint.
-         *
-         */
-        if (isStorable.getClass().isAnnotationPresent(Unique.class)) {
+        if (doUniqueAnnotationValidation) {
             Unique unique = isStorable.getClass().getAnnotation(Unique.class);
             uniqueQuery = new BasicDBObject();
             uniqueColumnList = Arrays.asList(unique.value());
         }
 
-        for (Column column : columnNameGetterMap.keySet()) {
-            Method getter = columnNameGetterMap.get(column);
+        Set<EntityMetaCache.ColumnMeta> columnMetaSet
+            = entityMetaCache.getColumnMetaSet(isStorable.getClass());
+
+        for (ColumnMeta columnMeta : columnMetaSet) {
+            Method getter = columnMeta.getGetter();
             Object value = null;
 
             try {
@@ -125,7 +86,11 @@ public class ValidateImpl implements Validate {
                 throw new RuntimeException(e);
             }
 
-            doNullableValidation(column, value, doThrowExceptions);
+            doNullableValidation(
+                columnMeta.getColumnAnnotation(),
+                value,
+                doThrowExceptions
+            );
 
             /*
              * If value is null we do not need to do any additional validation
@@ -138,28 +103,56 @@ public class ValidateImpl implements Validate {
                     validate((IsStorable) value, doThrowExceptions);
                 }
 
-                doLengthValidation(column, value, doThrowExceptions);
-                doRegexValidation(column, value, doThrowExceptions);
-                doColumnUniqueValidation(column, isStorable.getClass(), value, doThrowExceptions);
+                doLengthValidation(
+                    columnMeta.getColumnAnnotation(),
+                    value,
+                    doThrowExceptions
+                );
+                doRegexValidation(
+                    columnMeta.getColumnAnnotation(), value,
+                    doThrowExceptions
+                );
+
+                doColumnUniqueValidation(
+                    columnMeta.getColumnAnnotation(),
+                    isStorable.getClass(),
+                    value,
+                    doThrowExceptions
+                );
 
                 /*
                  * If uniqueColumnList is not null and this column is part of the
                  * unique constraint, put the value in the query object.
                  */
-                if (uniqueColumnList != null && uniqueColumnList.contains(column.name())) {
-                    uniqueQuery.put(column.name(), value);
+
+                boolean isUniqueColumn = doUniqueAnnotationValidation
+                    && uniqueColumnList.contains(
+                        columnMeta.getColumnAnnotation().name()
+                    );
+
+                if (isUniqueColumn) {
+                    uniqueQuery.put(
+                        columnMeta.getColumnAnnotation().name(),
+                        value
+                    );
+                }
+
+                /*
+                 * Recursion. Checking validity of the embedded object.
+                 */
+                if (columnMeta.getGetter().isAnnotationPresent(Embedded.class)) {
+                    validate((IsStorable) value);
                 }
             }
         }
 
-        /*
-         * If our list is null, we will check for the unique constraint violation
-         * here.
-         */
-        if (uniqueColumnList != null) {
+        if (doUniqueAnnotationValidation) {
+
+            //query to test uniqueness
             DBCursor cursor = mongoDB
                 .getCollection(isStorable.getClass().getAnnotation(Entity.class).name())
                 .find(uniqueQuery);
+
             //if the cursor is bigger than 0, this violates the constraint
             if (cursor.size() > 0) {
                 ValidationException validationException = new UniqueException();
@@ -175,7 +168,27 @@ public class ValidateImpl implements Validate {
         }
     }
 
+    @Override
+    public void validate(IsStorable isStorable) throws ValidationException {
+        validate(isStorable, true);
+    }
+
+    @Override
+    public Map<String, List<ValidationException>> getValidationErrorMap() {
+        return validationErrorMap;
+    }
+
+    /*
+     * Checks for null constraint validation
+     *
+     * @param column The Column Annotation object
+     * @param value The value of the column
+     * @param whether or not to throw the exception or just store it
+     *
+     * @throws NullableException
+     */
     private void doNullableValidation(Column column, Object value, boolean doThrowException) {
+
         if (value == null && !column.allowNull()) {
             ValidationException validationException =
                 new NullableException(column.name());
@@ -187,6 +200,15 @@ public class ValidateImpl implements Validate {
         }
     }
 
+    /*
+     * Checks for length constraint validation
+     *
+     * @param column The column annotation object
+     * @param value The value of the column
+     * @param doThrowException Whether or not to throw the exception or store it
+     *
+     * @throws LengthException
+     */
     private void doLengthValidation(Column column, Object value, boolean doThrowException) {
 
         if (value != null && column.minLength() > -1
@@ -216,6 +238,15 @@ public class ValidateImpl implements Validate {
         }
     }
 
+    /*
+     * Checks for regexp constraint validation
+     *
+     * @param column The column annotation object
+     * @param value The value of the column
+     * @param doThrowException Whether or not to throw the exception or store it
+     *
+     * @throws RegexpException
+     */
     private void doRegexValidation(Column column, Object value, boolean doThrowException) {
         if (value != null && !column.regexp().equals("")
             && String.class.isAssignableFrom(value.getClass())) {
@@ -253,11 +284,21 @@ public class ValidateImpl implements Validate {
         }
     }
 
+    /*
+     * Checks for unique constraint validation
+     *
+     * @param column The column annotation object
+     * @param value The value of the column
+     * @param doThrowException Whether or not to throw the exception or store it
+     *
+     * @throws UniqueException
+     */
     private void doColumnUniqueValidation(
         Column column,
         Class<? extends IsStorable> clazz,
         Object value,
         boolean doThrowException) throws UniqueException {
+
         if (value != null && column.unique() && clazz.isAnnotationPresent(Entity.class)) {
             Entity entity = clazz.getAnnotation(Entity.class);
             DBObject queryObject = new BasicDBObject();

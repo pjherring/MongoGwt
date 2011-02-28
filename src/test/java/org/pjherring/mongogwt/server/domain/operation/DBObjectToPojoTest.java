@@ -5,14 +5,12 @@
 
 package org.pjherring.mongogwt.server.domain.operation;
 
+import org.pjherring.mongogwt.server.domain.translate.DBObjectToPojo;
+import org.pjherring.mongogwt.server.domain.translate.PojoToDBObject;
 import org.pjherring.mongogwt.shared.IsEntity;
 import java.util.Date;
 import java.util.Set;
-import java.lang.reflect.Method;
-import org.easymock.Capture;
-import java.util.Map;
 import com.google.inject.Guice;
-import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.mongodb.BasicDBObject;
 import com.mongodb.DB;
@@ -28,17 +26,16 @@ import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.pjherring.mongogwt.server.guice.DataAccessTestModule;
 import org.pjherring.mongogwt.server.guice.DatabaseModule;
 import org.pjherring.mongogwt.shared.BaseDomainObject;
 import org.pjherring.mongogwt.shared.IsEmbeddable;
 import org.pjherring.mongogwt.shared.annotations.Column;
 import org.pjherring.mongogwt.shared.annotations.Embedded;
 import org.pjherring.mongogwt.shared.annotations.Entity;
+import org.pjherring.mongogwt.shared.annotations.Enumerated;
 import org.pjherring.mongogwt.shared.annotations.Reference;
 import org.pjherring.mongogwt.shared.annotations.enums.ReferenceType;
 import static org.junit.Assert.*;
-import static org.easymock.EasyMock.*;
 
 /**
  *
@@ -47,7 +44,7 @@ import static org.easymock.EasyMock.*;
 public class DBObjectToPojoTest extends EasyMockSupport {
 
     private final static Injector injector
-        = Guice.createInjector(new DatabaseTestModule(), new DataAccessTestModule());
+        = Guice.createInjector(new DatabaseTestModule());
     private DBObjectToPojo dbObjectToPojo;
     private PojoToDBObject pojoToDBObject;
     private DB mongoDb;
@@ -105,10 +102,32 @@ public class DBObjectToPojoTest extends EasyMockSupport {
             .drop();
         mongoDb.getCollection(WithEmbedded.class.getAnnotation(Entity.class).name())
             .drop();
+        mongoDb.getCollection(EntityWithEnums.class.getAnnotation(Entity.class).name());
     }
 
     @After
     public void tearDown() {
+    }
+
+    public enum EnumColumn {
+        ONE, TWO, THREE;
+    }
+
+    @Entity(name="withEnums")
+    public static class EntityWithEnums extends BaseDomainObject {
+
+        private EnumColumn enumColumn;
+
+        @Column(name="enumColumn")
+        @Enumerated
+        public EnumColumn getEnumColumn() {
+            return enumColumn;
+        }
+
+        public void setEnumColumn(EnumColumn enumColumn) {
+            this.enumColumn = enumColumn;
+        }
+
     }
 
     @Entity(name="simple")
@@ -460,5 +479,15 @@ public class DBObjectToPojoTest extends EasyMockSupport {
         DBObject simpleDB = pojoToDBObject.translate(simple);
         SimpleEntity translated = dbObjectToPojo.translate(simpleDB, SimpleEntity.class, true);
         assertEquals(simple.getWords(), translated.getWords());
+    }
+
+    @Test
+    public void testEntityWithEnum() {
+        EntityWithEnums entity = new EntityWithEnums();
+        entity.setEnumColumn(EnumColumn.ONE);
+
+        DBObject simple = pojoToDBObject.translate(entity);
+        EntityWithEnums translated = dbObjectToPojo.translate(simple, EntityWithEnums.class, true);
+        assertEquals(entity.getEnumColumn(), translated.getEnumColumn());
     }
 }

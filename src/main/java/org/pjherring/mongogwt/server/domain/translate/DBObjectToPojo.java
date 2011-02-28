@@ -3,7 +3,7 @@
  * and open the template in the editor.
  */
 
-package org.pjherring.mongogwt.server.domain.operation;
+package org.pjherring.mongogwt.server.domain.translate;
 
 
 import com.google.inject.Inject;
@@ -27,6 +27,7 @@ import org.pjherring.mongogwt.server.guice.DatabaseModule.EntityList;
 import org.pjherring.mongogwt.shared.IsEntity;
 import org.pjherring.mongogwt.shared.IsStorable;
 import org.pjherring.mongogwt.shared.annotations.Entity;
+import org.pjherring.mongogwt.shared.annotations.Enumerated;
 import org.pjherring.mongogwt.shared.exception.InvalidReference;
 
 /**
@@ -100,6 +101,11 @@ public class DBObjectToPojo {
                 } else if (value instanceof DBObject) { /* embedded object */
                     DBObject embeddedObject = (DBObject) value;
                     value = translate(embeddedObject, (Class<T>) Arrays.asList(setter.getParameterTypes()).get(0), doFanOut);
+                }
+
+                //deal with enums
+                if (columnMeta.getGetter().isAnnotationPresent(Enumerated.class)) {
+                    value = getEnumValueFromString((String) value, (Class<Enum>) columnMeta.getGetter().getReturnType());
                 }
 
                 try {
@@ -289,5 +295,17 @@ public class DBObjectToPojo {
 
         throw new InvalidReference("Did you forget to add the entity type " + ref.getRef() + " to your entity list?");
 
+    }
+
+    private Object getEnumValueFromString(String value, Class<Enum> aClass) {
+
+        for (Enum someEnum : aClass.getEnumConstants()) {
+            if (someEnum.name().toUpperCase().equals(value.toUpperCase())) {
+                return someEnum;
+            }
+        }
+
+        //should never get here
+        return null;
     }
 }

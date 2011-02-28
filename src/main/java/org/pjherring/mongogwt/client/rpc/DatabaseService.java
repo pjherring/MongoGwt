@@ -9,17 +9,8 @@ import com.google.gwt.user.client.rpc.RemoteService;
 import com.google.gwt.user.client.rpc.RemoteServiceRelativePath;
 import java.util.List;
 import org.pjherring.mongogwt.shared.IsEntity;
-import org.pjherring.mongogwt.shared.exception.ConstraintException;
-import org.pjherring.mongogwt.shared.exception.InvalidEntity;
-import org.pjherring.mongogwt.shared.exception.InvalidColumnException;
-import org.pjherring.mongogwt.shared.exception.InvalidReference;
-import org.pjherring.mongogwt.shared.exception.LengthException;
 import org.pjherring.mongogwt.shared.exception.NotFoundException;
 import org.pjherring.mongogwt.shared.exception.NotPersistedException;
-import org.pjherring.mongogwt.shared.exception.NullableException;
-import org.pjherring.mongogwt.shared.exception.QueryException;
-import org.pjherring.mongogwt.shared.exception.RegexpException;
-import org.pjherring.mongogwt.shared.exception.UniqueException;
 import org.pjherring.mongogwt.shared.exception.ValidationException;
 import org.pjherring.mongogwt.shared.query.Query;
 
@@ -29,15 +20,13 @@ import org.pjherring.mongogwt.shared.query.Query;
  */
 @RemoteServiceRelativePath("data")
 public interface DatabaseService extends RemoteService {
-    IsEntity create(IsEntity domainObject)
-        throws NullableException, ConstraintException, InvalidEntity,
-        InvalidColumnException, ValidationException, InvalidReference,
-        LengthException, RegexpException, UniqueException;
-    List<IsEntity> find(Query query, String type, boolean doFanOut) throws NotFoundException, QueryException;
-    IsEntity findOne(Query query, String type, boolean doFanOut) throws NotFoundException, QueryException;
-    IsEntity update(IsEntity domainObject) throws ValidationException, QueryException, NotPersistedException;
+
+    IsEntity create(IsEntity domainObject) throws ValidationException;
+    List<IsEntity> find(Query query, String type, boolean doFanOut) throws NotFoundException;
+    IsEntity findOne(Query query, String type, boolean doFanOut) throws NotFoundException;
+    IsEntity findById(String id, String type, boolean doFanOut) throws NotFoundException;
+    IsEntity update(IsEntity domainObject) throws ValidationException, NotPersistedException;
     void delete(Query query, String type) throws NotFoundException, NotPersistedException;
-    void delete(IsEntity domainObject) throws NotPersistedException;
-    IsEntity refresh(IsEntity domainObject, String type) throws NotFoundException, QueryException, NotPersistedException;
-    Long count(Query query, String type);
+    void delete(IsEntity entity) throws NotFoundException, NotPersistedException;
+    IsEntity refresh(IsEntity domainObject, String type) throws NotFoundException, NotPersistedException;
 }

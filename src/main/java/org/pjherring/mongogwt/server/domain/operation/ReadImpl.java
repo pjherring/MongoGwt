@@ -6,6 +6,8 @@
 package org.pjherring.mongogwt.server.domain.operation;
 
 
+import org.pjherring.mongogwt.server.domain.translate.DBObjectToPojo;
+import org.pjherring.mongogwt.server.domain.translate.PojoFlushOut;
 import org.pjherring.mongogwt.shared.domain.operation.Read;
 import com.google.inject.Inject;
 import com.mongodb.BasicDBObject;

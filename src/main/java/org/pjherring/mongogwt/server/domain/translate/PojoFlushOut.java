@@ -3,7 +3,7 @@
  * and open the template in the editor.
  */
 
-package org.pjherring.mongogwt.server.domain.operation;
+package org.pjherring.mongogwt.server.domain.translate;
 
 
 import com.google.inject.Inject;
