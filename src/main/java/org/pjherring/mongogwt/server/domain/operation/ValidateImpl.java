@@ -24,16 +24,21 @@ import java.util.regex.Pattern;
 import org.pjherring.mongogwt.server.domain.cache.EntityMetaCache;
 import org.pjherring.mongogwt.server.domain.cache.EntityMetaCache.ColumnMeta;
 import org.pjherring.mongogwt.shared.IsEmbeddable;
+import org.pjherring.mongogwt.shared.IsEntity;
 import org.pjherring.mongogwt.shared.IsStorable;
 import org.pjherring.mongogwt.shared.annotations.Column;
 import org.pjherring.mongogwt.shared.annotations.Embedded;
 import org.pjherring.mongogwt.shared.annotations.Entity;
 import org.pjherring.mongogwt.shared.annotations.Unique;
+import org.pjherring.mongogwt.shared.domain.operation.Read;
+import org.pjherring.mongogwt.shared.domain.validator.Validator;
 import org.pjherring.mongogwt.shared.exception.LengthException;
+import org.pjherring.mongogwt.shared.exception.NotFoundException;
 import org.pjherring.mongogwt.shared.exception.NullableException;
 import org.pjherring.mongogwt.shared.exception.RegexpException;
 import org.pjherring.mongogwt.shared.exception.UniqueException;
 import org.pjherring.mongogwt.shared.exception.ValidationException;
+import org.pjherring.mongogwt.shared.query.Query;
 
 /**
  *
@@ -46,20 +51,33 @@ public class ValidateImpl implements Validate {
     protected Map<String, List<ValidationException>> validationErrorMap;
     protected DB mongoDB;
     protected EntityMetaCache entityMetaCache;
+    protected Read read;
 
     @Inject
-    public ValidateImpl(DB mongoDB, EntityMetaCache entityMetaCache) {
+    public ValidateImpl(DB mongoDB, EntityMetaCache entityMetaCache, Read read) {
         translationMap = new HashMap<Class<? extends IsStorable>, Map<Column, Method>>();
         validationErrorMap = new HashMap<String, List<ValidationException>>();
 
         this.mongoDB = mongoDB;
         this.entityMetaCache = entityMetaCache;
+        this.read = read;
     }
 
     @Override
     public void validate(IsStorable isStorable, boolean doThrowExceptions) {
 
         validationErrorMap.clear();
+
+        List<Validator> validatorHooks
+            = entityMetaCache.getValidatorList(isStorable.getClass());
+
+        if (validatorHooks != null) {
+            for (Validator validator : validatorHooks) {
+                if (!validator.isValid(isStorable)) {
+                    throw new ValidationException(validator.getClass());
+                }
+            }
+        }
 
         List<String> uniqueColumnList = null;
         DBObject uniqueQuery = null;
@@ -293,26 +311,33 @@ public class ValidateImpl implements Validate {
      *
      * @throws UniqueException
      */
-    private void doColumnUniqueValidation(
+    private void doColumnUniqueValidation (
         Column column,
         Class<? extends IsStorable> clazz,
         Object value,
-        boolean doThrowException) throws UniqueException {
+        boolean doThrowException) {
 
         if (value != null && column.unique() && clazz.isAnnotationPresent(Entity.class)) {
+
             Entity entity = clazz.getAnnotation(Entity.class);
-            DBObject queryObject = new BasicDBObject();
-            queryObject.put(column.name(), value);
-            DBCursor cursor = mongoDB.getCollection(entity.name()).find(queryObject);
+            Query query = new Query().start(column.name()).is(value);
 
-            if (cursor.size() > 0) {
-                ValidationException validationException
-                    = new UniqueException(column.name());
-                storeValidationException(column.name(), validationException);
-                if (doThrowException) {
-                    throw validationException;
-                }
+            try {
+                IsEntity isEntity = read.findOne(
+                    query,
+                    (Class<? extends IsEntity>) clazz,
+                    false
+                );
+            } catch (NotFoundException e) {
+                return ;
+            }
 
+            ValidationException validationException
+                = new UniqueException(column.name());
+            storeValidationException(column.name(), validationException);
+
+            if (doThrowException) {
+                throw validationException;
             }
         }
     }

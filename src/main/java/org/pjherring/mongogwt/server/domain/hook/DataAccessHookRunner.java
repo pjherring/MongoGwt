@@ -7,6 +7,7 @@ package org.pjherring.mongogwt.server.domain.hook;
 
 
 import com.google.inject.Guice;
+import com.google.inject.Inject;
 import com.google.inject.Injector;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -31,6 +32,7 @@ public class DataAccessHookRunner {
 
     protected Validate validate;
 
+    @Inject
     public DataAccessHookRunner(Validate validate) {
         this.validate = validate;
     }
@@ -47,7 +49,12 @@ public class DataAccessHookRunner {
         DataAccessHook.When when,
         DataAccessHook.What what) {
 
-        validate.validate(entity);
+        if ((what.equals(DataAccessHook.What.CREATE)
+            || what.equals(DataAccessHook.What.UPDATE))
+            && when.equals(DataAccessHook.When.PRE)) {
+
+            validate.validate(entity);
+        }
 
 
         if (clazz.isAnnotationPresent(Hooks.class)) {
@@ -142,7 +149,13 @@ public class DataAccessHookRunner {
                     List<T> entityList = new ArrayList<T>(collection);
 
                     for (T entity : entityList) {
-                        validate.validate(entity);
+
+                        if ((what.equals(DataAccessHook.What.CREATE)
+                            || what.equals(DataAccessHook.What.UPDATE)) && when.equals(DataAccessHook.When.PRE) ) {
+
+                            validate.validate(entity);
+                        }
+
                         baseDataHook.setDomainObject(entity);
                         if (baseDataHook.doRun()) {
                             baseDataHook.run();
@@ -179,5 +192,4 @@ public class DataAccessHookRunner {
         //should never get here
         throw new RuntimeException("Invalid Hooks.");
     }
-
 }

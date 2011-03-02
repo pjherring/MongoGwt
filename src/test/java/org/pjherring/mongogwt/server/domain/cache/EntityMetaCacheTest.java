@@ -5,11 +5,11 @@
 
 package org.pjherring.mongogwt.server.domain.cache;
 
+import org.pjherring.mongogwt.shared.domain.validator.Validator;
 import org.pjherring.mongogwt.shared.IsEntity;
 import java.util.List;
 import org.pjherring.mongogwt.server.domain.cache.EntityMetaCache.ReferenceMeta;
 import java.util.Date;
-import java.util.HashSet;
 import java.util.Set;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -18,10 +18,12 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.pjherring.mongogwt.server.domain.cache.EntityMetaCache.ColumnMeta;
 import org.pjherring.mongogwt.shared.BaseDomainObject;
+import org.pjherring.mongogwt.shared.IsStorable;
 import org.pjherring.mongogwt.shared.annotations.Column;
 import org.pjherring.mongogwt.shared.annotations.Entity;
 import org.pjherring.mongogwt.shared.annotations.Reference;
 import org.pjherring.mongogwt.shared.annotations.enums.ReferenceType;
+import org.pjherring.mongogwt.shared.domain.validator.ValidatorHook;
 import static org.junit.Assert.*;
 
 /**
@@ -89,6 +91,7 @@ public class EntityMetaCacheTest {
     }
 
     @Entity(name="ref")
+    @ValidatorHook({ValidatorHookOne.class, ValidatorHookTwo.class})
     public static class RefEntity extends BaseDomainObject {
         private Set<SimpleEntity> simpleEntitySet;
         private List<SimpleEntity> simpleEntityList;
@@ -142,6 +145,22 @@ public class EntityMetaCacheTest {
 
         public void setSimpleManyToOne(SimpleEntity simpleManyToOne) {
             this.simpleManyToOne = simpleManyToOne;
+        }
+    }
+
+    public static class ValidatorHookOne extends Validator {
+
+        @Override
+        public boolean isValid(IsStorable entity) {
+            return true;
+        }
+    }
+
+    public static class ValidatorHookTwo extends Validator {
+
+        @Override
+        public boolean isValid(IsStorable entity) {
+            return true;
         }
     }
 
@@ -280,5 +299,16 @@ public class EntityMetaCacheTest {
         assertEquals(new Long(1), entityMetaCache.getColumnReferenceMetaCacheMisses());
         assertEquals(new Long(1), entityMetaCache.getNonColumnReferenceMetaCacheMisses());
         assertEquals(new Long(1), entityMetaCache.getNonColumnReferenceMetaCacheHits());
+    }
+
+    @Test
+    public void testValidatorHookMeta() {
+        List<Validator> list = entityMetaCache.getValidatorList(RefEntity.class);
+        assertNotNull(list);
+        assertEquals(2, list.size());
+        assertEquals(list.get(0).getClass().getName(), ValidatorHookOne.class, list.get(0).getClass());
+        assertEquals(list.get(1).getClass().getName(), ValidatorHookTwo.class, list.get(1).getClass());
+        assertEquals(new Long(1), entityMetaCache.validationCacheMiss);
+        assertEquals(new Long(0), entityMetaCache.validationCacheHit);
     }
 }

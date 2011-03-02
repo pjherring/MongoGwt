@@ -28,6 +28,8 @@ import org.pjherring.mongogwt.shared.annotations.Column;
 import org.pjherring.mongogwt.shared.annotations.Embedded;
 import org.pjherring.mongogwt.shared.annotations.Entity;
 import org.pjherring.mongogwt.shared.annotations.Unique;
+import org.pjherring.mongogwt.shared.domain.validator.Validator;
+import org.pjherring.mongogwt.shared.domain.validator.ValidatorHook;
 import org.pjherring.mongogwt.shared.exception.LengthException;
 import org.pjherring.mongogwt.shared.exception.NullableException;
 import org.pjherring.mongogwt.shared.exception.RegexpException;
@@ -138,6 +140,44 @@ public class ValidateTest {
         }
     }
 
+    @Entity(name="withValidator")
+    @ValidatorHook({ValidatorTest.class})
+    public static class EntityValidatorHook extends BaseDomainObject {
+        private String dataOne;
+        private String dataTwo;
+
+        @Column(name="dataOne", allowNull=true)
+        public String getDataOne() {
+            return dataOne;
+        }
+
+        public void setDataOne(String dataOne) {
+            this.dataOne = dataOne;
+        }
+
+        @Column(name="dataTwo", allowNull=true)
+        public String getDataTwo() {
+            return dataTwo;
+        }
+
+        public void setDataTwo(String dataTwo) {
+            this.dataTwo = dataTwo;
+        }
+    }
+
+    public static class ValidatorTest extends Validator<EntityValidatorHook> {
+
+        @Override
+        public boolean isValid(EntityValidatorHook entity) {
+            if (entity.getDataOne() == null && entity.getDataTwo() == null) {
+                return false;
+            }
+
+            return true;
+        }
+
+    }
+
     public ValidateTest() {
     }
 
@@ -160,6 +200,19 @@ public class ValidateTest {
 
     @After
     public void tearDown() {
+    }
+
+    @Test(expected=ValidationException.class)
+    public void testValidatorHookFailure() {
+        EntityValidatorHook entity = new EntityValidatorHook();
+        validate.validate(entity);
+    }
+
+    @Test
+    public void testValidatorHookSuccess() {
+        EntityValidatorHook entity = new EntityValidatorHook();
+        entity.setDataOne("data");
+        validate.validate(entity);
     }
 
     @Test(expected=NullableException.class)

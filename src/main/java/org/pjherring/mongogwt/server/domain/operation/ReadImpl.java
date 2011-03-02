@@ -92,6 +92,7 @@ public class ReadImpl implements Read {
      *
      * @return the found entity
      */
+    @Override
     public <T extends IsEntity> T findOne(
         Query query,
         Class<T> clazz,

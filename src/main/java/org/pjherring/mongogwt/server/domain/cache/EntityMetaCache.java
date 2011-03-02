@@ -10,8 +10,10 @@ import com.google.inject.Singleton;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.logging.Logger;
@@ -20,6 +22,8 @@ import org.pjherring.mongogwt.shared.IsStorable;
 import org.pjherring.mongogwt.shared.annotations.Column;
 import org.pjherring.mongogwt.shared.annotations.Reference;
 import org.pjherring.mongogwt.shared.annotations.enums.ReferenceType;
+import org.pjherring.mongogwt.shared.domain.validator.Validator;
+import org.pjherring.mongogwt.shared.domain.validator.ValidatorHook;
 
 /**
  *
@@ -115,6 +119,11 @@ public class EntityMetaCache {
     protected Long entityNonColumnReferenceMetaCacheHits = 0L;
     protected Long entityNonColumnReferenceMetaCacheMisses = 0L;
 
+    protected Map<Class<? extends IsStorable>, List<Validator>> validatorCache
+        = new HashMap<Class<? extends IsStorable>, List<Validator>>();
+    protected Long validationCacheHit = 0L;
+    protected Long validationCacheMiss = 0L;
+
 
     public Set<ColumnMeta> getColumnMetaSet(Class<? extends IsStorable> clazz) {
 
@@ -159,6 +168,40 @@ public class EntityMetaCache {
         toReturn.addAll(getColumnReferenceMetaSet(clazz));
 
         return toReturn;
+    }
+
+    public List<Validator> getValidatorList(Class<? extends IsStorable> clazz) {
+        if (!validatorCache.containsKey(clazz)) {
+            validationCacheMiss++;
+            validatorCache.put(clazz, doGetValidatorList(clazz));
+        } else {
+            validationCacheHit++;
+        }
+
+        return validatorCache.get(clazz);
+    }
+
+    protected <T extends IsStorable> List<Validator> doGetValidatorList(Class<T> clazz) {
+        if (clazz.isAnnotationPresent(ValidatorHook.class)) {
+
+            List<Validator> validatorList = new ArrayList<Validator>();
+            ValidatorHook validatorHook = clazz.getAnnotation(ValidatorHook.class);
+
+            for (Class validatorClass : validatorHook.value()) {
+                try {
+                    //unsafe cast
+                    Validator validator = (Validator) validatorClass.newInstance();
+                    validatorList.add(validator);
+                } catch (Exception e) {
+                    LOG.warning("Error when trying to create an instance of validator " + validatorClass.getName());
+                    throw new RuntimeException(e);
+                }
+            }
+
+            return validatorList;
+        }
+
+        return null;
     }
 
     /*
