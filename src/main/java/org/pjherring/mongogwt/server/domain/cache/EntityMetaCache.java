@@ -33,75 +33,6 @@ import org.pjherring.mongogwt.shared.domain.validator.ValidatorHook;
 public class EntityMetaCache {
 
     private final static Logger LOG = Logger.getLogger(EntityMetaCache.class.getName());
-    public static class ColumnMeta {
-        private Method getter;
-        private Method setter;
-        private Column columnAnnotation;
-
-        public Method getGetter() {
-            return getter;
-        }
-
-        public void setGetter(Method getter) {
-            this.getter = getter;
-        }
-
-        public Method getSetter() {
-            return setter;
-        }
-
-        public void setSetter(Method setter) {
-            this.setter = setter;
-        }
-
-        public Column getColumnAnnotation() {
-            return columnAnnotation;
-        }
-
-        public void setColumnAnnotation(Column columnAnnotation) {
-            this.columnAnnotation = columnAnnotation;
-        }
-    }
-
-    public static class ReferenceMeta {
-
-        private Class<? extends IsEntity> referencedClass;
-        private Reference reference;
-        private Method getter;
-        private Method setter;
-
-        public Class<? extends IsEntity> getReferencedClass() {
-            return referencedClass;
-        }
-
-        public void setReferencedClass(Class<? extends IsEntity> referencedClass) {
-            this.referencedClass = referencedClass;
-        }
-
-        public Reference getReference() {
-            return reference;
-        }
-
-        public void setReference(Reference reference) {
-            this.reference = reference;
-        }
-
-        public Method getGetter() {
-            return getter;
-        }
-
-        public void setGetter(Method getter) {
-            this.getter = getter;
-        }
-
-        public Method getSetter() {
-            return setter;
-        }
-
-        public void setSetter(Method setter) {
-            this.setter = setter;
-        }
-    }
 
     protected Map<Class<? extends IsStorable>, Set<ColumnMeta>> entityColumnMetaCacheMap
         = new HashMap<Class<? extends IsStorable>, Set<ColumnMeta>>();
@@ -109,13 +40,13 @@ public class EntityMetaCache {
     private Long entityColumnMetaCacheMisses = 0L;
 
     protected Map<Class<? extends IsEntity>, Set<ReferenceMeta>> entityColumnReferenceMetaCacheMap
-        = new HashMap<Class<? extends IsEntity>, Set<EntityMetaCache.ReferenceMeta>>();
+        = new HashMap<Class<? extends IsEntity>, Set<ReferenceMeta>>();
 
     protected Long entityColumnReferenceMetaCacheHits = 0L;
     protected Long entityColumnReferenceMetaCacheMisses = 0L;
 
     protected Map<Class<? extends IsEntity>, Set<ReferenceMeta>> entityNonColumnReferenceMetaCacheMap
-        = new HashMap<Class<? extends IsEntity>, Set<EntityMetaCache.ReferenceMeta>>();
+        = new HashMap<Class<? extends IsEntity>, Set<ReferenceMeta>>();
     protected Long entityNonColumnReferenceMetaCacheHits = 0L;
     protected Long entityNonColumnReferenceMetaCacheMisses = 0L;
 

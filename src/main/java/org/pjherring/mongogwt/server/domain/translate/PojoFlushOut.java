@@ -20,7 +20,7 @@ import java.util.Set;
 import java.util.logging.Logger;
 import org.bson.types.ObjectId;
 import org.pjherring.mongogwt.server.domain.cache.EntityMetaCache;
-import org.pjherring.mongogwt.server.domain.cache.EntityMetaCache.ReferenceMeta;
+import org.pjherring.mongogwt.server.domain.cache.ReferenceMeta;
 import org.pjherring.mongogwt.shared.IsEntity;
 import org.pjherring.mongogwt.shared.annotations.Entity;
 import org.pjherring.mongogwt.shared.annotations.enums.ReferenceType;

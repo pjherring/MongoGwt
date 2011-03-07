@@ -18,7 +18,7 @@ import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.pjherring.mongogwt.server.guice.DatabaseModule;
+import org.pjherring.mongogwt.server.guice.MongoDatabaseModule;
 import org.pjherring.mongogwt.shared.BaseDomainObject;
 import org.pjherring.mongogwt.shared.IsEmbeddable;
 import org.pjherring.mongogwt.shared.IsEntity;
@@ -38,13 +38,13 @@ public class CreateTest {
 
     private static final Injector injector =
         Guice.createInjector(new DatabaseTestModule());
-    private DB mongoDb;
-    private Create create;
+    private static DB mongoDb;
+    private static Create create;
 
     public CreateTest() {
     }
 
-    public static class DatabaseTestModule extends DatabaseModule {
+    public static class DatabaseTestModule extends MongoDatabaseModule {
 
         @Override
         protected String getHostName() {
@@ -118,6 +118,8 @@ public class CreateTest {
 
     @BeforeClass
     public static void setUpClass() throws Exception {
+        create = injector.getInstance(Create.class);
+        mongoDb = injector.getInstance(DB.class);
     }
 
     @AfterClass
@@ -126,8 +128,6 @@ public class CreateTest {
 
     @Before
     public void setUp() {
-        create = injector.getInstance(Create.class);
-        mongoDb = injector.getInstance(DB.class);
     }
 
     @After

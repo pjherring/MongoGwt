@@ -19,7 +19,7 @@ import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.pjherring.mongogwt.server.guice.DatabaseModule;
+import org.pjherring.mongogwt.server.guice.MongoDatabaseModule;
 import org.pjherring.mongogwt.shared.BaseDomainObject;
 import org.pjherring.mongogwt.shared.IsEmbeddable;
 import org.pjherring.mongogwt.shared.IsEntity;
@@ -43,15 +43,14 @@ public class ReadTest extends EasyMockSupport {
         new DatabaseTestModule()
     );
 
-    private DB mongoDb;
-    private Read read;
-    private Create create;
+    private static DB mongoDb;
+    private static Read read;
+    private static Create create;
 
     public ReadTest() {
-        mongoDb = injector.getInstance(DB.class);
     }
 
-    public static class DatabaseTestModule extends DatabaseModule {
+    public static class DatabaseTestModule extends MongoDatabaseModule {
 
         @Override
         protected String getHostName() {
@@ -152,6 +151,10 @@ public class ReadTest extends EasyMockSupport {
 
     @BeforeClass
     public static void setUpClass() throws Exception {
+        mongoDb = injector.getInstance(DB.class);
+        read = injector.getInstance(Read.class);
+        create = injector.getInstance(Create.class);
+
     }
 
     @AfterClass
@@ -160,9 +163,6 @@ public class ReadTest extends EasyMockSupport {
 
     @Before
     public void setUp() {
-        read = injector.getInstance(Read.class);
-        create = injector.getInstance(Create.class);
-
         mongoDb.getCollection(
             SimpleEntity.class.getAnnotation(Entity.class).name()
         ).drop();

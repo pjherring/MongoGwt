@@ -19,7 +19,7 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.pjherring.mongogwt.server.domain.operation.DBObjectToPojoTest.EmbeddedEntity;
-import org.pjherring.mongogwt.server.guice.DatabaseModule;
+import org.pjherring.mongogwt.server.guice.MongoDatabaseModule;
 import org.pjherring.mongogwt.shared.BaseDomainObject;
 import org.pjherring.mongogwt.shared.IsEntity;
 import org.pjherring.mongogwt.shared.annotations.Column;
@@ -48,15 +48,15 @@ public class DeleteTest {
         new DatabaseTestModule()
     );
 
-    private DB mongoDb;
-    private Delete delete;
-    private Create create;
-    private Read read;
+    private static DB mongoDb;
+    private static Delete delete;
+    private static Create create;
+    private static Read read;
 
     public DeleteTest() {
     }
 
-    public static class DatabaseTestModule extends DatabaseModule {
+    public static class DatabaseTestModule extends MongoDatabaseModule {
 
         @Override
         protected String getHostName() {
@@ -182,6 +182,10 @@ public class DeleteTest {
 
     @BeforeClass
     public static void setUpClass() throws Exception {
+        mongoDb = injector.getInstance(DB.class);
+        delete = injector.getInstance(Delete.class);
+        read = injector.getInstance(Read.class);
+        create = injector.getInstance(Create.class);
     }
 
     @AfterClass
@@ -190,11 +194,7 @@ public class DeleteTest {
 
     @Before
     public void setUp() {
-        delete = injector.getInstance(Delete.class);
-        read = injector.getInstance(Read.class);
-        create = injector.getInstance(Create.class);
 
-        mongoDb = injector.getInstance(DB.class);
         mongoDb
             .getCollection(SimpleEntity.class.getAnnotation(Entity.class).name())
             .drop();

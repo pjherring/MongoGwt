@@ -16,6 +16,9 @@ public interface IsEntity extends IsStorable {
     String getId();
     void setId(String id);
 
+    String getPrimaryId();
+    void setPrimaryId(String id);
+
     Date getCreatedDatetime();
     void setCreatedDatetime(Date createdDatetime);
 }

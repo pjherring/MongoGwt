@@ -25,7 +25,7 @@ import org.pjherring.mongogwt.shared.IsEntity;
  *
  * @author pjherring
  */
-public abstract class DatabaseModule extends AbstractModule {
+public abstract class MongoDatabaseModule extends AbstractModule {
 
     protected TypeLiteral entityListTypeLiteral = new TypeLiteral<List<Class<? extends IsEntity>>>(){;};
 

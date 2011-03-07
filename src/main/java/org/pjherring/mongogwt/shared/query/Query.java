@@ -7,6 +7,7 @@ package org.pjherring.mongogwt.shared.query;
 
 import com.google.gwt.user.client.rpc.IsSerializable;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -66,6 +67,8 @@ public class Query implements IsSerializable {
      */
     protected List<String> regexpKeys = new ArrayList<String>();
 
+    protected List<String> columns = new ArrayList<String>();
+
     /*
      * Holds the keys of reference ids.
      */
@@ -90,6 +93,15 @@ public class Query implements IsSerializable {
     }
 
     public Query() {}
+
+    public Query select(String... columnsToAdd) {
+        columns.addAll(Arrays.asList(columnsToAdd));
+        return this;
+    }
+
+    public List<String> getColumns() {
+        return columns;
+    }
 
     /*
      * Get the limit set on the query.

@@ -21,8 +21,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
+import org.pjherring.mongogwt.server.domain.cache.ColumnMeta;
 import org.pjherring.mongogwt.server.domain.cache.EntityMetaCache;
-import org.pjherring.mongogwt.server.domain.cache.EntityMetaCache.ColumnMeta;
 import org.pjherring.mongogwt.shared.IsEmbeddable;
 import org.pjherring.mongogwt.shared.IsEntity;
 import org.pjherring.mongogwt.shared.IsStorable;
@@ -90,7 +90,7 @@ public class ValidateImpl implements Validate {
             uniqueColumnList = Arrays.asList(unique.value());
         }
 
-        Set<EntityMetaCache.ColumnMeta> columnMetaSet
+        Set<ColumnMeta> columnMetaSet
             = entityMetaCache.getColumnMetaSet(isStorable.getClass());
 
         for (ColumnMeta columnMeta : columnMetaSet) {

@@ -19,7 +19,7 @@ import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.pjherring.mongogwt.server.guice.DatabaseModule;
+import org.pjherring.mongogwt.server.guice.MongoDatabaseModule;
 import org.pjherring.mongogwt.shared.BaseDomainObject;
 import org.pjherring.mongogwt.shared.IsEmbeddable;
 import org.pjherring.mongogwt.shared.IsEntity;
@@ -43,12 +43,12 @@ public class UpdateTest {
         new DatabaseTestModule()
     );
 
-    private DB mongoDb;
-    private Update update;
-    private Read read;
-    private Create create;
+    private static DB mongoDb;
+    private static Update update;
+    private static Read read;
+    private static Create create;
 
-    public static class DatabaseTestModule extends DatabaseModule {
+    public static class DatabaseTestModule extends MongoDatabaseModule {
 
         @Override
         protected String getHostName() {
@@ -163,6 +163,10 @@ public class UpdateTest {
 
     @BeforeClass
     public static void setUpClass() throws Exception {
+        mongoDb = injector.getInstance(DB.class);
+        update = injector.getInstance(Update.class);
+        create = injector.getInstance(Create.class);
+        read = injector.getInstance(Read.class);
     }
 
     @AfterClass
@@ -171,14 +175,10 @@ public class UpdateTest {
 
     @Before
     public void setUp() {
-        mongoDb = injector.getInstance(DB.class);
 
         mongoDb.getCollection(SimpleEntity.class.getAnnotation(Entity.class).name()).drop();
         mongoDb.getCollection(WithSimpleRef.class.getAnnotation(Entity.class).name()).drop();
 
-        update = injector.getInstance(Update.class);
-        create = injector.getInstance(Create.class);
-        read = injector.getInstance(Read.class);
     }
 
     @After

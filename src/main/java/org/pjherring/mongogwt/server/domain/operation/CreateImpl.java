@@ -15,7 +15,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.logging.Logger;
 import org.bson.types.ObjectId;
-import org.pjherring.mongogwt.server.guice.DatabaseModule.EntityList;
+import org.pjherring.mongogwt.server.guice.MongoDatabaseModule.EntityList;
 import org.pjherring.mongogwt.shared.IsEntity;
 import org.pjherring.mongogwt.shared.annotations.Entity;
 import org.pjherring.mongogwt.shared.domain.operation.Create;
