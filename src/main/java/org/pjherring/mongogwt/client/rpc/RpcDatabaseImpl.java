@@ -20,6 +20,7 @@ public class RpcDatabaseImpl implements RpcDatabase {
         this.service = service;
     }
 
+    @Override
     public <T extends IsEntity> void create(final IsEntity domainObject,
         Class<T> type,
         final AsyncCallback<T> callback) {
@@ -38,6 +39,7 @@ public class RpcDatabaseImpl implements RpcDatabase {
 
     }
 
+    @Override
     public <T extends IsEntity> void find(
         final Query query,
         Class<T> type,
@@ -61,6 +63,7 @@ public class RpcDatabaseImpl implements RpcDatabase {
 
     }
 
+    @Override
     public <T extends IsEntity> void findOne(
         final Query query,
         final Class<T> type,
@@ -78,6 +81,7 @@ public class RpcDatabaseImpl implements RpcDatabase {
         });
     }
 
+    @Override
     public <T extends IsEntity> void update(
         final T isDomainObject,
         final AsyncCallback<T> callback) {
@@ -93,20 +97,44 @@ public class RpcDatabaseImpl implements RpcDatabase {
         });
     }
 
+    @Override
     public void delete(final Query query, Class type, final AsyncCallback<Void> callback) {
         service.delete(query, type.getName(), callback);
     }
 
+    @Override
     public <T extends IsEntity> void refresh(
         final IsEntity domainObject,
         Class<T> type,
         final AsyncCallback<T> callback) {
         service.refresh(domainObject, type.getName(), new AsyncCallback<IsEntity>() {
 
+            @Override
             public void onFailure(Throwable caught) {
                 callback.onFailure(caught);
             }
 
+            @Override
+            public void onSuccess(IsEntity result) {
+                callback.onSuccess((T) result);
+            }
+        });
+    }
+
+    @Override
+    public <T extends IsEntity> void findById(
+        String id,
+        Class<T> type,
+        boolean doFanOut,
+        final AsyncCallback<T> callback) {
+        service.findById(id, type.getName(), doFanOut, new AsyncCallback<IsEntity>() {
+
+            @Override
+            public void onFailure(Throwable caught) {
+                callback.onFailure(caught);
+            }
+
+            @Override
             public void onSuccess(IsEntity result) {
                 callback.onSuccess((T) result);
             }

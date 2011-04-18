@@ -36,6 +36,12 @@ public interface RpcDatabase {
         boolean doFanOut,
         final AsyncCallback<T> callback);
 
+    public <T extends IsEntity> void findById(
+        final String id,
+        final Class<T> type,
+        boolean doFanOut,
+        final AsyncCallback<T> callback);
+
     public <T extends IsEntity> void update(
         final T isDomainObject,
         final AsyncCallback<T> callback);
